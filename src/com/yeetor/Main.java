@@ -7,6 +7,8 @@ import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapInstallException;
 import com.yeetor.minicap.MinicapListener;
+import com.yeetor.p2p.WSServer;
+import io.netty.bootstrap.ServerBootstrap;
 
 import java.io.*;
 
@@ -17,55 +19,14 @@ public class Main {
     static String sn = "f76ce69";
 
     public static void main(String[] args) {
-        AdbServer server = new AdbServer();
 
-        IDevice[] devices = server.getDevices();
-        IDevice device = null;
-        for (IDevice d : devices) {
-            if (sn.equals(d.getSerialNumber())) {
-                device = d;
-                break;
-            }
-        }
-        if (device == null && devices.length > 0) {
-            device = devices[0];
-        }
-
+        // 启动服务器
         try {
-            Minicap.installMinicap(device);
-        } catch (MinicapInstallException e) {
+            new WSServer(6655).start();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
 
-        Minicap cap = new Minicap(device);
-
-        MinicapListener listener = new MinicapListener() {
-            public void onStartup(Minicap minicap, boolean success) {
-                System.out.println("start up");
-            }
-            // banner信息读取完毕
-            public void onBanner(Minicap minicap, Banner banner) {
-                System.out.println(banner);
-            }
-            // 读取到图片信息
-            public void onJPG(Minicap minicap, byte[] data) {
-                System.out.println("data:" + data.length);
-                File f = new File("screen.jpg");
-                try {
-                    FileOutputStream fileOutputStream = new FileOutputStream(f);
-                    fileOutputStream.write(data);
-                    fileOutputStream.close();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-
-        cap.addEventListener(listener);
-
-        cap.start(1.0f, 0);
     }
 }
