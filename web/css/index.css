@@ -1,0 +1,61 @@
+.top-nav {
+    background-color: #00b8d4;
+    height: 64px;
+    box-shadow: none;
+}
+
+.connect-btn {
+    text-transform: none;
+    background-color: #00acc1;
+}
+
+.top-nav .text-title {
+    font-size: 40px;
+    line-height: 64px;
+    text-align: center;
+}
+
+.config .row {
+    margin-bottom: 0px;
+}
+
+.config .collapsible-header {
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+.config .collapsible-header .row {
+    width: 100%;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+#phone-screen {
+}
+
+#minicap-statu {
+    background-color: #757575;
+}
+
+#minitouch-statu {
+    background-color: #757575;
+}
+
+#minicap-fps {
+    text-align: center;
+}
+
+#minicap-config {
+    position: fixed;
+    float: left;
+}
+
+#dropdown-button-scale {
+    text-transform: none;
+    margin-top: 10px;
+}
+
+#dropdown-button-rotate {
+    text-transform: none;
+    margin-top: 10px;
+}
