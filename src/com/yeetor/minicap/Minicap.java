@@ -4,6 +4,7 @@ import com.android.ddmlib.*;
 import com.google.common.primitives.Bytes;
 import com.sun.deploy.util.ArrayUtil;
 import com.sun.deploy.util.StringUtils;
+import com.yeetor.adb.AdbServer;
 import com.yeetor.util.Constant;
 import com.yeetor.util.Util;
 
@@ -89,6 +90,12 @@ public class Minicap {
     public Minicap(IDevice device) {
         this.device = device;
 
+        try {
+            installMinicap(device);
+        } catch (MinicapInstallException e) {
+            e.printStackTrace();
+        }
+
         // init size
         String str = executeShellCommand(device, "wm size");
         if (str != null && !str.isEmpty()) {
@@ -97,6 +104,14 @@ public class Minicap {
             int screenHeight = Integer.parseInt(sizeStr.split("x")[1].trim());
             deviceSize = new Size(screenWidth, screenHeight);
         }
+    }
+
+    public Minicap(String serialNumber) {
+        this(AdbServer.server().getDevice(serialNumber));
+    }
+
+    public Minicap() {
+        this(AdbServer.server().getFirstDevice());
     }
 
     public void addEventListener(MinicapListener listener) {
@@ -169,7 +184,6 @@ public class Minicap {
     }
 
     public void start(final float scale, final int rotate) {
-
         try {
             device.createForward(1717, "minicap", IDevice.DeviceUnixSocketNamespace.ABSTRACT);
         } catch (Exception e) {
@@ -179,6 +193,31 @@ public class Minicap {
         String command = getMinicapCommand(scale, rotate);
         minicapThread = startMinicapThread(command);
         minicapInitialThread = startInitialThread("127.0.0.1", 1717);
+    }
+
+    public void reStart(final float scale, final int rotate) {
+        running = false;
+        if (minicapThread != null) {
+            minicapThread.stop();
+        }
+
+        if (dataReaderThread != null) {
+            try {
+                dataReaderThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (imageParserThread != null) {
+            try {
+                imageParserThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        start(scale, rotate);
 
     }
 
@@ -336,8 +375,6 @@ public class Minicap {
                 ts = System.currentTimeMillis();
                 int len = stream.read(buffer);
                 if (len == -1) {
-                    System.out.println("can not capture the screen!");
-                    System.exit(-1);
                     return;
                 }
                 if (len == BUFF_SIZ) {

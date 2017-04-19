@@ -1,5 +1,5 @@
 # AndroidControl
-这是一款使用浏览器控制Android手机的工具
+这是一款实时控制Android手机的工具
 
 ### 包含内容
 
@@ -18,3 +18,15 @@
 注意：
 
 * 测试的手机需要打开Debug模式
+
+### 日后
+* 帧数限制，用户可自定义帧数
+* 画面清晰度，旋转，缩放设定
+* 群控功能，可以控制多台设备
+* 操作映射，对一台机器的操作映射到多台机器
+* 操作录制(脚本录制)
+* 服务器支持
+* 流压缩
+
+### 感谢
+* `minicap` [https://github.com/openstf/minicap](https://github.com/openstf/minicap)

@@ -1,43 +1,24 @@
 package com.yeetor.p2p;
 
-import com.android.ddmlib.IDevice;
-import com.sun.corba.se.spi.activation.Server;
-import com.yeetor.adb.AdbServer;
-import com.yeetor.minicap.Banner;
-import com.yeetor.minicap.Minicap;
-import com.yeetor.minicap.MinicapInstallException;
-import com.yeetor.minicap.MinicapListener;
+import com.yeetor.minicap.*;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.*;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.Buffer;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by harry on 2017/4/18.
  */
 public class WSServer {
 
-    static final int DATA_TIMEOUT = 100; //ms
-
     private int port = -1;
     List<Protocol> protocolList;
-
-    private boolean isWaitting = false;
-    private BlockingQueue<ImageData> dataQueue = new LinkedBlockingQueue<ImageData>();
 
     public WSServer(int port) {
         listen(port);
@@ -90,7 +71,19 @@ public class WSServer {
             if (text.startsWith("wait://")) {
                 wait(ctx, text);
             } else if ("waiting".equals(text)) {
-                isWaitting = true;
+                Protocol protocol = findProtocolByBrowser(ctx);
+                if (protocol != null) {
+                    protocol.getLocalClient().setWaitting(true);
+                }
+            } else if (text.startsWith("config://")) {
+
+                Protocol protocol = findProtocolByBrowser(ctx);
+                if (protocol != null) {
+                    String s = text.split("://")[1];
+                    float scale = Float.parseFloat(s.split(":")[0]);
+                    int ro = Integer.parseInt(s.split(":")[1]);
+                    protocol.getMinicap().reStart(scale, ro);
+                }
             }
         }
 
@@ -106,72 +99,26 @@ public class WSServer {
 //                return;
 //            }
 
+            // TODO 目前直接通知客户端准备完毕
+
+            ctx.channel().writeAndFlush(new TextWebSocketFrame("open://" + key));
+
             Protocol protocol = new Protocol();
             protocol.setKey(key);
             protocol.setBroswerSocket(ctx);
             protocolList.add(protocol);
 
             // 启动minicap
-            AdbServer server = new AdbServer();
-            IDevice[] devices = server.getDevices();
-            IDevice device = null;
-            for (IDevice d : devices) {
-                if ("-".equals(d.getSerialNumber())) {
-                    device = d;
-                    break;
-                }
-            }
-            if (device == null && devices.length > 0) {
-                device = devices[0];
-            }
+            LocalClient localClient = new LocalClient(protocol);
+            Minicap cap = new Minicap();
+            cap.addEventListener(localClient);
+            cap.start(0.5f, 0);
 
-            try {
-                Minicap.installMinicap(device);
-            } catch (MinicapInstallException e) {
-                e.printStackTrace();
-            }
+            // 启动touch
 
-            Minicap cap = new Minicap(device);
 
-            MinicapListener listener = new MinicapListener() {
-                public void onStartup(Minicap minicap, boolean success) {
-                    System.out.println("start up");
-                }
-                // banner信息读取完毕
-                public void onBanner(Minicap minicap, Banner banner) {
-                    System.out.println(banner);
-                }
-                // 读取到图片信息
-                public void onJPG(Minicap minicap, byte[] data) {
-                    if (isWaitting) {
-                        if (dataQueue.size() > 0) {
-                            dataQueue.add(new ImageData(data));
-                            long curTS = System.currentTimeMillis();
-                            // 挑选没有超时的图片
-                            ImageData d = null;
-                            while (true) {
-                                d = dataQueue.poll();
-                                // 如果没有超时，或者超时了但是最后一张图片，也发送给客户端
-                                if (curTS - d.timesp < DATA_TIMEOUT || dataQueue.size() == 0) {
-                                    break;
-                                }
-                            }
-                            sendImage(ctx, d.data);
-                        } else {
-                            sendImage(ctx, data);
-                        }
-                        isWaitting = false;
-                    } else {
-                        dataQueue.add(new ImageData(data));
-                    }
-                }
-            };
-
-            cap.addEventListener(listener);
-
-            cap.start(0.3f, 0);
-            ctx.channel().writeAndFlush(new TextWebSocketFrame("open://" + protocol.key));
-            ctx.channel().writeAndFlush(new TextWebSocketFrame("minicap"));
+            protocol.setMinicap(cap);
+            protocol.setLocalClient(localClient);
         }
 
         void sendImage(ChannelHandlerContext ctx, byte[] data) {
@@ -179,12 +126,22 @@ public class WSServer {
         }
     }
 
-    static class ImageData {
-        ImageData(byte[] d) {
-            timesp = System.currentTimeMillis();
-            data = d;
+    private Protocol findProtocolByBrowser(ChannelHandlerContext ctx) {
+        for (Protocol protocol : protocolList) {
+            if (protocol.getBroswerSocket() != null && protocol.getBroswerSocket() == ctx) {
+                return protocol;
+            }
         }
-        long timesp;
-        byte[] data;
+        return null;
     }
+
+    private Protocol findProtocolByClient(ChannelHandlerContext ctx) {
+        for (Protocol protocol : protocolList) {
+            if (protocol.getClientSocket() != null && protocol.getClientSocket() == ctx) {
+                return protocol;
+            }
+        }
+        return null;
+    }
+
 }
