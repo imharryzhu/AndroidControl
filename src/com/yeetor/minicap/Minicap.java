@@ -4,10 +4,12 @@ import com.android.ddmlib.*;
 import com.google.common.primitives.Bytes;
 import com.sun.deploy.util.ArrayUtil;
 import com.sun.deploy.util.StringUtils;
+import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
 import com.yeetor.adb.AdbForward;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.util.Constant;
 import com.yeetor.util.Util;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.FileImageOutputStream;
@@ -17,6 +19,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -161,21 +164,43 @@ public class Minicap {
     }
 
     public byte[] takeScreenShot() {
-        String savePath = REMOTE_PATH + "/" + "screeen.jpg";
-        String command = getMinicapCommand(deviceSize.w, deviceSize.h, deviceSize.w, deviceSize.h, 0, false, "minicap", new String[] {"-s > " + savePath});
-        AdbServer.executeShellCommand(device, command);
+        String command = getMinicapCommand(deviceSize.w, deviceSize.h, 1080, 1920, 0, false, "minicap", new String[] {"-s"});
+        BinaryOutputReceiver receiver = new BinaryOutputReceiver();
         try {
-            device.pullFile(savePath, "1.jpg");
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (AdbCommandRejectedException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        } catch (SyncException e) {
+            device.executeShellCommand(command, receiver, 0);
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+
+        // remove text output
+        byte[] bytes = receiver.getOutput();
+        int i = 0;
+        for (; i < bytes.length; i++) {
+            if (bytes[i] == -1) {
+                if (bytes[i + 1] == -40) {
+                    break;
+                }
+            }
+        }
+
+        // in windows, must replace 0d0d0a => 0a
+        bytes = Arrays.copyOfRange(bytes, i, bytes.length);
+        ArrayList<Byte> l = new ArrayList<Byte>();
+        for (i = 0; i < bytes.length; ) {
+            if (bytes[i] == 0x0d) {
+                if (bytes[i + 1] == 0x0d) {
+                    if (bytes[i + 2] == 0x0a) {
+                        l.add((byte) 0x0a);
+                        i += 3;
+                        continue;
+                    }
+                }
+            }
+            l.add(bytes[i]);
+            i++;
+        }
+
+        return Bytes.toArray(l);
     }
 
     public void start(int ow, int oh, int dw, int dh, int rotate, boolean shipFrame, String[] args) {
