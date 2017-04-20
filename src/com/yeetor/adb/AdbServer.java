@@ -1,11 +1,19 @@
 package com.yeetor.adb;
 
 import com.android.ddmlib.*;
+import com.android.ddmlib.TimeoutException;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import com.sun.xml.internal.bind.v2.model.core.ID;
 import jdk.internal.org.objectweb.asm.commons.AdviceAdapter;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
 
 /**
  * Created by harry on 2017/4/15.
@@ -118,5 +126,81 @@ public class AdbServer {
         }
         return output.getOutput();
     }
+
+    private ListenableFuture<List<AdbForward>> executeGetForwardList() {
+        final File adbFile = new File(AdbServer.server().adbPath);
+        final SettableFuture future = SettableFuture.create();
+        (new Thread(new Runnable() {
+            public void run() {
+                ProcessBuilder pb = new ProcessBuilder(new String[]{adbFile.getPath(), "forward", "--list"});
+                pb.redirectErrorStream(true);
+                Process p = null;
+
+                try {
+                    p = pb.start();
+                } catch (IOException e) {
+                    future.setException(e);
+                    return;
+                }
+
+                StringBuilder sb = new StringBuilder();
+                BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+                try {
+                    String line;
+                    try {
+                        List<AdbForward> list = new ArrayList<AdbForward>();
+                        while((line = br.readLine()) != null) {
+                            //64b2b4d9 tcp:555 localabstract:shit
+                            AdbForward forward = new AdbForward(line);
+                            if (forward.isForward()) {
+                                list.add(forward);
+                            }
+                        }
+                        future.set(list);
+                        return;
+                    } catch (IOException ex) {
+                        future.setException(ex);
+                        return;
+                    }
+                } finally {
+                    try {
+                        br.close();
+                    } catch (IOException ex) {
+                        future.setException(ex);
+                    }
+
+                }
+            }
+        }, "Obtaining adb version")).start();
+        return future;
+    }
+
+    public AdbForward[] getForwardList() {
+        ListenableFuture<List<AdbForward>> future = executeGetForwardList();
+        try {
+            List<AdbForward> s = future.get(1, TimeUnit.SECONDS);
+            AdbForward[] ret = new AdbForward[s.size()];
+            s.toArray(ret);
+            return ret;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return new AdbForward[0];
+    }
+
+//    public static String[] getForwardList(IDevice device) {
+//        CollectingOutputReceiver receiver = new CollectingOutputReceiver();
+//
+//        try {
+//            device.executeShellCommand("forward --list", receiver, 0);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//
+//        String output = receiver.getOutput();
+//        System.out.println(output);
+//        return null;
+//    }
 
 }

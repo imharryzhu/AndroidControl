@@ -4,6 +4,7 @@ import com.android.ddmlib.*;
 import com.google.common.primitives.Bytes;
 import com.sun.deploy.util.ArrayUtil;
 import com.sun.deploy.util.StringUtils;
+import com.yeetor.adb.AdbForward;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.util.Constant;
 import com.yeetor.util.Util;
@@ -30,8 +31,6 @@ public class Minicap {
     private static final String MINICAP_SO = "minicap.so";
     private static final String REMOTE_PATH = "/data/local/tmp";
 
-
-
     private IDevice device;
 
     // 物理屏幕宽高
@@ -41,6 +40,8 @@ public class Minicap {
 
     // 启动minicap的线程
     private Thread minicapThread, minicapInitialThread, dataReaderThread, imageParserThread;
+
+    private AdbForward forward;
 
     // listener
     private List<MinicapListener> listenerList = new ArrayList<MinicapListener>();
@@ -128,12 +129,14 @@ public class Minicap {
       -t:            Attempt to get the capture method running, then exit.
       -i:            Get display information in JSON format. May segfault.
      */
-    public String getMinicapCommand(int ow, int oh, int dw, int dh, int rotate, boolean shipFrame, String[] args) {
+    public String getMinicapCommand(int ow, int oh, int dw, int dh, int rotate, boolean shipFrame, String name, String[] args) {
         ArrayList<String> commands = new ArrayList<String>();
         commands.add(String.format("LD_LIBRARY_PATH=%s", REMOTE_PATH));
         commands.add(REMOTE_PATH + "/" + MINICAP_BIN);
         commands.add("-P");
         commands.add(String.format("%dx%d@%dx%d/%d", ow, oh, dw, dh, rotate));
+        commands.add("-n");
+        commands.add(name);
         if (shipFrame)
             commands.add("-S");
         if (args != null) {
@@ -146,17 +149,20 @@ public class Minicap {
         return command;
     }
 
-    public String getMinicapCommand(int w, int h, float scale) {
-        return getMinicapCommand(w, h, (int)(w * scale), (int)(h * scale), 0, true, null);
-    }
-
-    public String getMinicapCommand(float scale, int rotate) {
-        return getMinicapCommand(deviceSize.w, deviceSize.h, (int)(deviceSize.w * scale), (int)(deviceSize.h * scale), rotate, true, null);
+    public AdbForward createForward() {
+        forward = generateForwardInfo();
+        try {
+            device.createForward(forward.getPort(), forward.getLocalabstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("create forward failed");
+        }
+        return forward;
     }
 
     public byte[] takeScreenShot() {
         String savePath = REMOTE_PATH + "/" + "screeen.jpg";
-        String command = getMinicapCommand(deviceSize.w, deviceSize.h, (int)1080, (int)1920, 0, false, new String[] {"-s > " + savePath});
+        String command = getMinicapCommand(deviceSize.w, deviceSize.h, deviceSize.w, deviceSize.h, 0, false, "minicap", new String[] {"-s > " + savePath});
         AdbServer.executeShellCommand(device, command);
         try {
             device.pullFile(savePath, "1.jpg");
@@ -169,27 +175,19 @@ public class Minicap {
         } catch (SyncException e) {
             e.printStackTrace();
         }
-
-
         return null;
     }
 
     public void start(int ow, int oh, int dw, int dh, int rotate, boolean shipFrame, String[] args) {
-        String command = getMinicapCommand(ow, oh, dw, dh ,rotate, shipFrame, args);
-        String res = AdbServer.executeShellCommand(device, command);
-        System.out.println(res);
+        AdbForward forward = createForward();
+        String command = getMinicapCommand(ow, oh, dw, dh ,rotate, shipFrame, forward.getLocalabstract(), args);
+
+        minicapThread = startMinicapThread(command);
+        minicapInitialThread = startInitialThread("127.0.0.1", forward.getPort());
     }
 
     public void start(final float scale, final int rotate) {
-        try {
-            device.createForward(1717, "minicap", IDevice.DeviceUnixSocketNamespace.ABSTRACT);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        String command = getMinicapCommand(scale, rotate);
-        minicapThread = startMinicapThread(command);
-        minicapInitialThread = startInitialThread("127.0.0.1", 1717);
+        start(deviceSize.w, deviceSize.h, (int)(deviceSize.w * scale), (int)(deviceSize.h * scale), rotate,true, null);
     }
 
     public void reStart(final float scale, final int rotate) {
@@ -213,9 +211,7 @@ public class Minicap {
                 e.printStackTrace();
             }
         }
-
         start(scale, rotate);
-
     }
 
     /**
@@ -292,6 +288,33 @@ public class Minicap {
         });
         thread.start();
         return thread;
+    }
+
+    /**
+     * 生成forward信息
+     */
+    private AdbForward generateForwardInfo() {
+        AdbForward[] forwards = AdbServer.server().getForwardList();
+        // serial_cap_number
+        int maxNumber = 0;
+        if (forwards.length > 0) {
+            for (AdbForward forward : forwards) {
+                if (forward.getSerialNumber().equals(device.getSerialNumber())) {
+                    String l = forward.getLocalabstract();
+                    String[] s = l.split("_");
+                    if (s.length == 3) {
+                        int n = Integer.parseInt(s[2]);
+                        if (n > maxNumber) maxNumber = n;
+                    }
+                }
+            }
+        }
+        maxNumber += 1;
+
+        String forwardStr = String.format("%s_cap_%d", device.getSerialNumber(), maxNumber);
+        int freePort = Util.getFreePort();
+        AdbForward forward = new AdbForward(device.getSerialNumber(), freePort, forwardStr);
+        return forward;
     }
 
     private Thread startDataReaderThread(Socket minicapSocket) {

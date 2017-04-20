@@ -3,6 +3,7 @@ package com.yeetor.util;
 import com.android.ddmlib.*;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Arrays;
 
 /**
@@ -19,6 +20,27 @@ public class Util {
         byte[] arr = Arrays.copyOf(a1, a1.length + a2.length);
         System.arraycopy(a2, 0, arr, a1.length, a2.length);
         return arr;
+    }
+
+    /**
+     * 获取闲置端口号
+     * @return
+     */
+    public static int getFreePort() {
+        ServerSocket tmp;
+        int i = 10000;
+        for(; i <= 65535; i++){
+            try{
+                tmp = new ServerSocket(i);
+                tmp.close();
+                tmp = null;
+                return i;
+            }
+            catch(Exception e4){
+                continue;
+            }
+        }
+        return -1;
     }
 
 }

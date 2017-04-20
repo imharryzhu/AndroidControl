@@ -2,9 +2,11 @@ package com.yeetor.minitouch;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
+import com.yeetor.adb.AdbForward;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.minicap.MinicapListener;
 import com.yeetor.util.Constant;
+import com.yeetor.util.Util;
 
 import javax.naming.ldap.SortKey;
 import java.io.File;
@@ -31,6 +33,7 @@ public class Minitouch {
     private Thread minitouchThread, minitouchInitialThread;
     private Socket minitouchSocket;
     private OutputStream minitouchOutputStream;
+    private AdbForward forward;
 
     public static void installMinitouch(IDevice device) throws MinitouchInstallException {
         if (device == null) {
@@ -77,15 +80,22 @@ public class Minitouch {
         }
     }
 
-    public void start() {
+    public AdbForward createForward() {
+        forward = generateForwardInfo();
         try {
-            device.createForward(43255, "minitouch", IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+            device.createForward(forward.getPort(), forward.getLocalabstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("create forward failed");
         }
-        String command = "/data/local/tmp/minitouch";
+        return forward;
+    }
+
+    public void start() {
+        AdbForward forward = createForward();
+        String command = "/data/local/tmp/minitouch" + " -n " + forward.getLocalabstract();
         minitouchThread = startMinitouchThread(command);
-        minitouchInitialThread = startInitialThread("127.0.0.1", 43255);
+        minitouchInitialThread = startInitialThread("127.0.0.1", forward.getPort());
     }
 
     public void sendEvent(String str) {
@@ -94,6 +104,33 @@ public class Minitouch {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 生成forward信息
+     */
+    private AdbForward generateForwardInfo() {
+        AdbForward[] forwards = AdbServer.server().getForwardList();
+        // serial_touch_number
+        int maxNumber = 0;
+        if (forwards.length > 0) {
+            for (AdbForward forward : forwards) {
+                if (forward.getSerialNumber().equals(device.getSerialNumber())) {
+                    String l = forward.getLocalabstract();
+                    String[] s = l.split("_");
+                    if (s.length == 3) {
+                        int n = Integer.parseInt(s[2]);
+                        if (n > maxNumber) maxNumber = n;
+                    }
+                }
+            }
+        }
+        maxNumber += 1;
+
+        String forwardStr = String.format("%s_touch_%d", device.getSerialNumber(), maxNumber);
+        int freePort = Util.getFreePort();
+        AdbForward forward = new AdbForward(device.getSerialNumber(), freePort, forwardStr);
+        return forward;
     }
 
     private Thread startMinitouchThread(final String command) {
