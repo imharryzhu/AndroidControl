@@ -7,6 +7,9 @@ import java.io.File;
  */
 public class Constant {
 
+    public static final String PROP_ABI = "ro.product.cpu.abi";
+    public static final String PROP_SDK = "ro.build.version.sdk";
+
     public static File getMinicap() {
         return new File("resources/minicap" + File.separator + "bin");
     }
@@ -15,5 +18,8 @@ public class Constant {
         return new File("resources/minicap" + File.separator + "shared");
     }
 
+    public static File getMinitouchBin() {
+        return new File("E:\\Projects\\minitouch\\libs");
+    }
 
 }

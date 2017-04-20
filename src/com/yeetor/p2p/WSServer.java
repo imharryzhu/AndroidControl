@@ -1,6 +1,7 @@
 package com.yeetor.p2p;
 
 import com.yeetor.minicap.*;
+import com.yeetor.minitouch.Minitouch;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.*;
 import io.netty.channel.*;
@@ -76,13 +77,17 @@ public class WSServer {
                     protocol.getLocalClient().setWaitting(true);
                 }
             } else if (text.startsWith("config://")) {
-
                 Protocol protocol = findProtocolByBrowser(ctx);
                 if (protocol != null) {
                     String s = text.split("://")[1];
                     float scale = Float.parseFloat(s.split(":")[0]);
                     int ro = Integer.parseInt(s.split(":")[1]);
                     protocol.getMinicap().reStart(scale, ro);
+                }
+            } else { // touch message
+                Protocol protocol = findProtocolByBrowser(ctx);
+                if (protocol != null) {
+                    protocol.getMinitouch().sendEvent(text);
                 }
             }
         }
@@ -112,12 +117,16 @@ public class WSServer {
             LocalClient localClient = new LocalClient(protocol);
             Minicap cap = new Minicap();
             cap.addEventListener(localClient);
-            cap.start(0.5f, 0);
+            cap.start(0.3f, 0);
 
             // 启动touch
+            Minitouch touch = new Minitouch();
+            touch.addEventListener(localClient);
+            touch.start();
 
 
             protocol.setMinicap(cap);
+            protocol.setMinitouch(touch);
             protocol.setLocalClient(localClient);
         }
 

@@ -1,6 +1,7 @@
 package com.yeetor.p2p;
 
 import com.yeetor.minicap.Minicap;
+import com.yeetor.minitouch.Minitouch;
 import io.netty.channel.ChannelHandlerContext;
 
 /**
@@ -12,6 +13,7 @@ public class Protocol {
     public ChannelHandlerContext clientSocket;
     public String key;
     public Minicap minicap;
+    public Minitouch minitouch;
     public LocalClient localClient;
 
     public void broswerDisconnect() {
@@ -42,6 +44,10 @@ public class Protocol {
         this.minicap = minicap;
     }
 
+    public void setMinitouch(Minitouch minitouch) {
+        this.minitouch = minitouch;
+    }
+
     public void setLocalClient(LocalClient localClient) {
         this.localClient = localClient;
     }
@@ -60,6 +66,10 @@ public class Protocol {
 
     public Minicap getMinicap() {
         return minicap;
+    }
+
+    public Minitouch getMinitouch() {
+        return minitouch;
     }
 
     public LocalClient getLocalClient() {

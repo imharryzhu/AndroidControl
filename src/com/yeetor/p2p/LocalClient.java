@@ -3,6 +3,8 @@ package com.yeetor.p2p;
 import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
+import com.yeetor.minitouch.Minitouch;
+import com.yeetor.minitouch.MinitouchListener;
 import com.yeetor.p2p.Protocol;
 import com.yeetor.p2p.WSServer;
 import io.netty.buffer.Unpooled;
@@ -16,7 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Created by harry on 2017/4/19.
  */
-public class LocalClient extends MinicapListener {
+public class LocalClient implements MinicapListener, MinitouchListener {
     static final int DATA_TIMEOUT = 100; //ms
     private boolean isWaitting = false;
     private BlockingQueue<ImageData> dataQueue = new LinkedBlockingQueue<ImageData>();
@@ -58,8 +60,24 @@ public class LocalClient extends MinicapListener {
         }
     }
 
+    @Override
+    public void onStartup(Minitouch minitouch, boolean success) {
+        if (protocol != null && protocol.getBroswerSocket() != null && success) {
+            protocol.getBroswerSocket().channel().writeAndFlush(new TextWebSocketFrame("minitouch"));
+        }
+    }
+
     public void setWaitting(boolean waitting) {
         isWaitting = waitting;
+        trySendImage();
+    }
+
+    private void trySendImage() {
+        ImageData d = getUsefulImage();
+        if (d != null) {
+            isWaitting = false;
+            sendImage(d.data);
+        }
     }
 
     private void clearObsoleteImage() {
@@ -82,7 +100,7 @@ public class LocalClient extends MinicapListener {
         while (true) {
             d = dataQueue.poll();
             // 如果没有超时，或者超时了但是最后一张图片，也发送给客户端
-            if (curTS - d.timesp < DATA_TIMEOUT || dataQueue.size() == 0) {
+            if (d == null || curTS - d.timesp < DATA_TIMEOUT || dataQueue.size() == 0) {
                 break;
             }
         }

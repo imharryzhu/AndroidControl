@@ -26,14 +26,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class Minicap {
 
-    private static final String MINICAP_BIN_DIR = "resources" + File.separator + "minicap-bin";
-    private static final String MINICAP_SO_DIR = "resources" + File.separator + "minicap-so";
     private static final String MINICAP_BIN = "minicap";
     private static final String MINICAP_SO = "minicap.so";
     private static final String REMOTE_PATH = "/data/local/tmp";
 
-    private static final String PROP_ABI = "ro.product.cpu.abi";
-    private static final String PROP_SDK = "ro.build.version.sdk";
+
 
     private IDevice device;
 
@@ -58,8 +55,8 @@ public class Minicap {
             throw new MinicapInstallException("device can't be null");
         }
 
-        String sdk = device.getProperty(PROP_SDK).trim();
-        String abi = device.getProperty(PROP_ABI).trim();
+        String sdk = device.getProperty(Constant.PROP_SDK).trim();
+        String abi = device.getProperty(Constant.PROP_ABI).trim();
 
         // minicap
         File minicap_bin = new File(Constant.getMinicap(), abi + File.separator + MINICAP_BIN);
@@ -72,7 +69,7 @@ public class Minicap {
             throw new MinicapInstallException(e.getMessage());
         }
 
-        executeShellCommand(device, "chmod 777 " + REMOTE_PATH + "/" + MINICAP_BIN);
+        AdbServer.executeShellCommand(device, "chmod 777 " + REMOTE_PATH + "/" + MINICAP_BIN);
 
         // minicap.so
         File minicap_so = new File(Constant.getMinicapSo(), "android-" + sdk + File.separator + abi + File.separator + MINICAP_SO);
@@ -97,7 +94,7 @@ public class Minicap {
         }
 
         // init size
-        String str = executeShellCommand(device, "wm size");
+        String str = AdbServer.executeShellCommand(device, "wm size");
         if (str != null && !str.isEmpty()) {
             String sizeStr = str.split(":")[1];
             int screenWidth = Integer.parseInt(sizeStr.split("x")[0].trim());
@@ -160,7 +157,7 @@ public class Minicap {
     public byte[] takeScreenShot() {
         String savePath = REMOTE_PATH + "/" + "screeen.jpg";
         String command = getMinicapCommand(deviceSize.w, deviceSize.h, (int)1080, (int)1920, 0, false, new String[] {"-s > " + savePath});
-        executeShellCommand(device, command);
+        AdbServer.executeShellCommand(device, command);
         try {
             device.pullFile(savePath, "1.jpg");
         } catch (IOException e) {
@@ -179,7 +176,7 @@ public class Minicap {
 
     public void start(int ow, int oh, int dw, int dh, int rotate, boolean shipFrame, String[] args) {
         String command = getMinicapCommand(ow, oh, dw, dh ,rotate, shipFrame, args);
-        String res = executeShellCommand(device, command);
+        String res = AdbServer.executeShellCommand(device, command);
         System.out.println(res);
     }
 
@@ -259,7 +256,7 @@ public class Minicap {
             public void run() {
                 try {
                     byte[] bytes = null;
-                    int tryTime = 0;
+                    int tryTime = 20;
                     while (true) {
                         // 连接minicap启动的服务
                         Socket socket = new Socket(host, port);
@@ -268,7 +265,7 @@ public class Minicap {
                         int n = inputStream.read(bytes);
 
                         if (n == -1) {
-                            Thread.sleep(100);
+                            Thread.sleep(10);
                             socket.close();
                         } else {
                             // bytes内包含有信息，需要给Dataparser处理
@@ -325,23 +322,6 @@ public class Minicap {
         for (MinicapListener listener : listenerList) {
             listener.onJPG(this, data);
         }
-    }
-
-    static String executeShellCommand(IDevice device, String command) {
-        CollectingOutputReceiver output = new CollectingOutputReceiver();
-
-        try {
-            device.executeShellCommand(command, output, 0);
-        } catch (TimeoutException e) {
-            e.printStackTrace();
-        } catch (AdbCommandRejectedException e) {
-            e.printStackTrace();
-        } catch (ShellCommandUnresponsiveException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return output.getOutput();
     }
 
     private class DataReader implements Runnable {

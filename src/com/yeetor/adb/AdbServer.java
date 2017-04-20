@@ -1,11 +1,11 @@
 package com.yeetor.adb;
 
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
+import com.android.ddmlib.*;
 import com.sun.xml.internal.bind.v2.model.core.ID;
 import jdk.internal.org.objectweb.asm.commons.AdviceAdapter;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by harry on 2017/4/15.
@@ -100,6 +100,23 @@ public class AdbServer {
             return devices[0];
         }
         return null;
+    }
+
+    public static String executeShellCommand(IDevice device, String command) {
+        CollectingOutputReceiver output = new CollectingOutputReceiver();
+
+        try {
+            device.executeShellCommand(command, output, 0);
+        } catch (TimeoutException e) {
+            e.printStackTrace();
+        } catch (AdbCommandRejectedException e) {
+            e.printStackTrace();
+        } catch (ShellCommandUnresponsiveException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return output.getOutput();
     }
 
 }

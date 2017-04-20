@@ -7,6 +7,14 @@
 * 客户端😀
 * 服务端😀
 
+### 已实现功能
+* 显示手机屏幕
+* 可对手机进行操作              
+    * 单点触摸
+    * 滑动
+* 设置屏幕的缩放比例
+* 设置屏幕的旋转角度
+
 
 ![](demo.gif)
 
@@ -30,3 +38,4 @@
 
 ### 感谢
 * `minicap` [https://github.com/openstf/minicap](https://github.com/openstf/minicap)
+* `minitouch` [https://github.com/openstf/minitouch](https://github.com/openstf/minitouch)
