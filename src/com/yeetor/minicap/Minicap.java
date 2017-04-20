@@ -176,25 +176,24 @@ public class Minicap {
         byte[] bytes = receiver.getOutput();
         int i = 0;
         for (; i < bytes.length; i++) {
-            if (bytes[i] == -1) {
-                if (bytes[i + 1] == -40) {
-                    break;
-                }
+            if (bytes[i] == -1 && bytes[i + 1] == -40) {
+                break; // is jpg?
             }
+        }
+
+        if (i == bytes.length) {
+            System.out.println("not a jpg file!!");
+            return null;
         }
 
         // in windows, must replace 0d0d0a => 0a
         bytes = Arrays.copyOfRange(bytes, i, bytes.length);
         ArrayList<Byte> l = new ArrayList<Byte>();
         for (i = 0; i < bytes.length; ) {
-            if (bytes[i] == 0x0d) {
-                if (bytes[i + 1] == 0x0d) {
-                    if (bytes[i + 2] == 0x0a) {
-                        l.add((byte) 0x0a);
-                        i += 3;
-                        continue;
-                    }
-                }
+            if (bytes[i] == 0x0d && bytes[i + 1] == 0x0d && bytes[i + 2] == 0x0a) {
+                l.add((byte) 0x0a);
+                i += 3;
+                continue;
             }
             l.add(bytes[i]);
             i++;

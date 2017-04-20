@@ -16,7 +16,7 @@
 * 设置屏幕的旋转角度
 
 
-![](demo.gif)
+![demo](demo.gif)
 
 ### 使用方法
 
@@ -32,9 +32,25 @@
 * 画面清晰度，旋转，缩放设定
 * 群控功能，可以控制多台设备
 * 操作映射，对一台机器的操作映射到多台机器
-* 操作录制(脚本录制)
+* 操作录制、运行(使用脚本语言，js|lua|python语言的支持，可能只实现js)
 * 服务器支持
-* 流压缩
+* 流压缩(h264)
+
+### 技术栈介绍
+* 核心模块
+    * Java
+    * C++
+    * Android NDK
+    * Android ADB
+    * Android ddmlib
+    * Websocket
+    * ... add
+* 网页端
+    * html5/css3/js/jquery
+    * bootstrap
+    * ... add
+* 客户端
+    * ... add
 
 ### 感谢
 * `minicap` [https://github.com/openstf/minicap](https://github.com/openstf/minicap)
