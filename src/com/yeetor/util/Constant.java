@@ -11,15 +11,15 @@ public class Constant {
     public static final String PROP_SDK = "ro.build.version.sdk";
 
     public static File getMinicap() {
-        return new File("resources/minicap" + File.separator + "bin");
+        return new File("resources" + File.separator + "minicap" + File.separator + "bin");
     }
 
     public static File getMinicapSo() {
-        return new File("resources/minicap" + File.separator + "shared");
+        return new File("resources" + File.separator + "minicap" + File.separator + "shared");
     }
 
     public static File getMinitouchBin() {
-        return new File("E:\\Projects\\minitouch\\libs");
+        return new File("resources" + File.separator + "minitouch");
     }
 
 }
