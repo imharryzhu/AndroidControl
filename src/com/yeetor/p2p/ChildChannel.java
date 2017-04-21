@@ -11,9 +11,9 @@ import io.netty.handler.stream.ChunkedWriteHandler;
  */
 public class ChildChannel extends ChannelInitializer<SocketChannel> {
 
-    IWebsocketEvent event;
+    WebsocketEvent event;
 
-    public ChildChannel(IWebsocketEvent event) {
+    public ChildChannel(WebsocketEvent event) {
         this.event = event;
     }
 

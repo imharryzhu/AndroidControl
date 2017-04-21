@@ -7,10 +7,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.CharsetUtil;
 
@@ -22,9 +19,9 @@ import java.util.Date;
 public class WSSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     WebSocketServerHandshaker handshaker;
-    IWebsocketEvent event;
+    WebsocketEvent event;
 
-    public WSSocketHandler(IWebsocketEvent event) {
+    public WSSocketHandler(WebsocketEvent event) {
         this.event = event;
     }
 
@@ -88,6 +85,13 @@ public class WSSocketHandler extends SimpleChannelInboundHandler<Object> {
     private void handleHttpRequest(ChannelHandlerContext ctx, FullHttpRequest req) {
         if (!req.getDecoderResult().isSuccess()
                 || (!"websocket".equals(req.headers().get("Upgrade")))) {
+            if (event != null) {
+                DefaultFullHttpResponse response = event.onHttpRequest(ctx, req);
+                if (response != null) {
+                    sendHttpResponse(ctx, req, response);
+                    return;
+                }
+            }
             sendHttpResponse(ctx, req, new DefaultFullHttpResponse(
                     HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST));
             return;

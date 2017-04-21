@@ -164,7 +164,9 @@ public class Minicap {
     }
 
     public byte[] takeScreenShot() {
-        String command = getMinicapCommand(deviceSize.w, deviceSize.h, 1080, 1920, 0, false, "minicap", new String[] {"-s"});
+        String command = getMinicapCommand(deviceSize.w, deviceSize.h, 1080, 1920, 0, false, "minicap", new String[] {"-s | wc -c"});
+
+        command = command + " && " + getMinicapCommand(deviceSize.w, deviceSize.h, 1080, 1920, 0, false, "minicap", new String[] {"-s"});
         BinaryOutputReceiver receiver = new BinaryOutputReceiver();
         try {
             device.executeShellCommand(command, receiver, 0);
@@ -187,14 +189,17 @@ public class Minicap {
         }
 
         // in windows, must replace 0d0d0a => 0a
+        String s = new String(Arrays.copyOfRange(bytes, 0, i + 1));
+        System.out.println(s);
         bytes = Arrays.copyOfRange(bytes, i, bytes.length);
         ArrayList<Byte> l = new ArrayList<Byte>();
         for (i = 0; i < bytes.length; ) {
-            if (bytes[i] == 0x0d && bytes[i + 1] == 0x0d && bytes[i + 2] == 0x0a) {
-                l.add((byte) 0x0a);
-                i += 3;
-                continue;
-            }
+//            if (bytes[i] == 0x0d && bytes[i + 1] == 0x0a) {
+//                l.add((byte) 0x0a);
+//                System.out.println(i);
+//                i += 3;
+//                continue;
+//            }
             l.add(bytes[i]);
             i++;
         }

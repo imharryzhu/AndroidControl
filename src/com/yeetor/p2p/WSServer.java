@@ -1,15 +1,27 @@
 package com.yeetor.p2p;
 
+import com.alibaba.fastjson.JSON;
+import com.android.ddmlib.IDevice;
+import com.yeetor.adb.AdbServer;
 import com.yeetor.minicap.*;
 import com.yeetor.minitouch.Minitouch;
+import com.yeetor.util.Util;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.*;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import jdk.nashorn.internal.ir.debug.JSONWriter;
+import jdk.nashorn.internal.parser.JSONParser;
+import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -39,12 +51,12 @@ public class WSServer {
                 channel(NioServerSocketChannel.class).
                 option(ChannelOption.SO_BACKLOG, 128).
                 childOption(ChannelOption.SO_KEEPALIVE, true).
-                childHandler(new ChildChannel(new WebsocketEvent()));
+                childHandler(new ChildChannel(new WebsocketEventImp()));
         ChannelFuture future = bootstrap.bind(port).sync();
         future.channel().closeFuture().sync();
     }
 
-    private class WebsocketEvent implements IWebsocketEvent {
+    private class WebsocketEventImp extends WebsocketEvent {
 
         @Override
         public void onConnect(ChannelHandlerContext ctx) {
@@ -84,6 +96,11 @@ public class WSServer {
                     int ro = Integer.parseInt(s.split(":")[1]);
                     protocol.getMinicap().reStart(scale, ro);
                 }
+            } else if (text.equals("devices")){
+                sendDevicesJson(ctx);
+            } else if (text.startsWith("shot://")){
+                String sn = text.split("://")[1];
+                sendShot(ctx, sn);
             } else { // touch message
                 Protocol protocol = findProtocolByBrowser(ctx);
                 if (protocol != null) {
@@ -94,6 +111,17 @@ public class WSServer {
 
         @Override
         public void onBinaryMessage(ChannelHandlerContext ctx, byte[] data) {
+        }
+
+        @Override
+        DefaultFullHttpResponse onHttpRequest(ChannelHandlerContext ctx, FullHttpRequest req) {
+            // TODO 目前只支持GET请求
+            if (req.method().toString().toUpperCase().equals("GET")) {
+                DefaultFullHttpResponse response = onHttpGet(req.uri());
+                return response;
+            } else {
+                return null;
+            }
         }
 
         void wait(final ChannelHandlerContext ctx, String text) {
@@ -130,8 +158,27 @@ public class WSServer {
             protocol.setLocalClient(localClient);
         }
 
+        void sendDevicesJson(ChannelHandlerContext ctx) {
+            IDevice[] devices = AdbServer.server().getDevices();
+            ArrayList<DeviceInfo> list = new ArrayList<DeviceInfo>();
+            for (IDevice device : devices) {
+                list.add(new DeviceInfo(device)); // TODO 耗时长，需优化
+            }
+            String json = JSON.toJSONString(list);
+            ctx.channel().writeAndFlush(new TextWebSocketFrame(json));
+        }
+
+        void sendShot(ChannelHandlerContext ctx, String sn) {
+            Minicap cap = new Minicap(sn);
+            ctx.channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.copiedBuffer(cap.takeScreenShot())));
+        }
+
         void sendImage(ChannelHandlerContext ctx, byte[] data) {
             ctx.writeAndFlush(new BinaryWebSocketFrame(Unpooled.copiedBuffer(data)));
+        }
+
+        DefaultFullHttpResponse onHttpGet(String uri) {
+            return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
         }
     }
 
