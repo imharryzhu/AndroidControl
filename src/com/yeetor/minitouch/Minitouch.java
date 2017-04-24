@@ -99,6 +99,9 @@ public class Minitouch {
     }
 
     public void sendEvent(String str) {
+        if (minitouchOutputStream == null) {
+            return;
+        }
         try {
             minitouchOutputStream.write(str.getBytes());
         } catch (IOException e) {

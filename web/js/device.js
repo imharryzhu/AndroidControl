@@ -44,6 +44,7 @@ function connectServer() {
             } else if(str === "minicap" && util.serverConnected) {
                 waitingData();
             } else if (str === "minitouch" && util.serverConnected) {
+                onMinitouchReady();
             }
         } else {
             waitingData();
@@ -82,7 +83,6 @@ function setCanvasImageData(data) {
     img.src = u;
 }
 
-
 // 获取鼠标在html中的绝对位置
 function mouseCoords(event){
     if(event.pageX || event.pageY){
@@ -113,6 +113,10 @@ function getXAndY(control, event){
 }
 
 var isDown = false;
+
+function onMinitouchReady() {
+    $(canvas).toggleClass("minitouch");
+}
 
 canvas.onmousedown = function (event) {
     if (!util.serverConnected) {

@@ -1,0 +1,7 @@
+#phone-screen {
+    cursor: not-allowed;
+}
+
+#phone-screen[class~="minitouch"] {
+    cursor: default;
+}
