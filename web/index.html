@@ -1,92 +1,24 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>RemoteControl</title>
-    <meta charset="utf-8">
-    <!--<link type="text/css" rel="stylesheet" href="css/reset.css" />-->
-    <link type="text/css" rel="stylesheet" href="materialize/css/materialize.min.css"  media="screen,projection"/>
-    <link type="text/css" rel="stylesheet" href="css/index.css">
-    <!--Let browser know website is optimized for mobile-->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-</head>
-
-<body>
-    <nav class="top-nav">
-        <div class="container">
-            <div class="text-title">RemoteControl</div>
-        </div>
-    </nav>
-    <div class="container config">
-        <ul class="collapsible" data-collapsible="accordion">
-            <li>
-                <div class="collapsible-header config-header">
-                    <div class="row">
-                        <div class="col s6" id="minicap-statu">
-                            <div class="col s2">Display</div>
-                            <div class="col s8" id="minicap-fps"></div>
-                        </div>
-                        <div class="col s6" id="minitouch-statu">
-                            <div class="col s2">Touch</div>
-                            <div class="col s8"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="collapsible-body">
-                    <div class="container">
-                        <div class="row">
-                            <div class="input-field col s5">
-                                <input type="text" id="server_ip" class="validate">
-                                <label for="server_ip">ServerIp</label>
-                            </div>
-                            <div class="input-field col s5">
-                                <input type="text" id="server_port" class="validate">
-                                <label for="server_port">MinicapServerProt</label>
-                            </div>
-                            <div class="input-field col s2">
-                                <a class="waves-effect waves-light btn" onclick="onConfigSave()">Save</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </li>
-        </ul>
-    </div>
-
-    <div class="container center-align">
-        <div class="row">
-            <div id="minicap-config">
-                <a id="dropdown-button-scale" class='dropdown-button btn' href='#' data-activates='dropdown-scale'>scale</a>
-                <br>
-                <a id="dropdown-button-rotate" class='dropdown-button btn' href='#' data-activates='dropdown-rotate'>rotate</a>
-                <ul id='dropdown-scale' class='dropdown-content'>
-                    <li><a onclick="onMinicapScaleChange(this)">0.1</a></li>
-                    <li><a onclick="onMinicapScaleChange(this)">0.2</a></li>
-                    <li><a onclick="onMinicapScaleChange(this)">0.3</a></li>
-                    <li><a onclick="onMinicapScaleChange(this)">0.4</a></li>
-                    <li><a onclick="onMinicapScaleChange(this)">0.5</a></li>
-                    <li><a onclick="onMinicapScaleChange(this)">0.6</a></li>
-                    <li><a onclick="onMinicapScaleChange(this)">0.7</a></li>
-                    <li><a onclick="onMinicapScaleChange(this)">0.8</a></li>
-                    <li><a onclick="onMinicapScaleChange(this)">0.9</a></li>
-                    <li><a onclick="onMinicapScaleChange(this)">1.0</a></li>
-                </ul>
-                <ul id='dropdown-rotate' class='dropdown-content'>
-                    <li><a onclick="onMinicapRotateChange(this)">0</a></li>
-                    <li><a onclick="onMinicapRotateChange(this)">90</a></li>
-                    <li><a onclick="onMinicapRotateChange(this)">180</a></li>
-                    <li><a onclick="onMinicapRotateChange(this)">270</a></li>
-                </ul>
-            </div>
-            <div class="col s12 center-align">
-                <canvas id="phone-screen"></canvas>
+<html lang="zh-CN">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Bootstrap 101 Template</title>
+        <!-- Bootstrap -->
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        <link href="css/index.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container-fluid">
+            <div class="row">
             </div>
         </div>
-    </div>
 
-    <!--Import jQuery before materialize.js-->
-    <script type="text/javascript" src="js/jquery.min.js"></script>
-    <script type="text/javascript" src="materialize/js/materialize.min.js"></script>
-    <script type="text/javascript" src="js/screendata.js"></script>
-    <script type="text/javascript" src="js/index.js"></script>
-</body>
+        <!-- jQuery -->
+        <script src="js/jquery.min.js"></script>
+        <script src="js/jquery.jsonp.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/index.js"></script>
+    </body>
 </html>

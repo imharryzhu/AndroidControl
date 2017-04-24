@@ -1,65 +1,49 @@
 /**
- * Created by harry on 2017/3/30.
+ * Created by harry on 2017/4/24.
  */
+
+var util = {};
 var webSocket = null;
 
-var minicapts = 0;
-var totalFPS = 0;
-var totalImageCount = 0;
-var totalData = 0;
+String.prototype.startWith=function(str){
+    var reg=new RegExp("^"+str);
+    return reg.test(this);
+};
+
+String.prototype.endWith=function(str){
+    var reg=new RegExp(str+"$");
+    return reg.test(this);
+};
 
 var canvas = document.getElementById("phone-screen");
 var g = canvas.getContext('2d');
 
-var util = {
-    ip:null,
-    port:null,
-    key:null,
-    serverConnected:false,
-    minicapConnected:false,
-    minitouchConnected:false
-};
-
-Materialize.toast('Waiting For Client', 3000, 'rounded');
-
-// 向服务器发送消息，表示想要接收数据
-function waitingData() {
-    webSocket.send("waiting");
+function getUrlParams(name) {
+    var reg = new RegExp("(^|\\?|&)"+ name +"=([^&]*)(\\s|&|$)", "i");
+    if (reg.test(location.href)) return unescape(RegExp.$2.replace(/\+/g, " "));
+    return "";
 }
 
-/**
- *  连接服务器
- */
 function connectServer() {
     var key = util.key;
     var ip = util.ip;
     var port = util.port;
     webSocket = new WebSocket("ws://" + ip + ":" + port);
     webSocket.onopen = function () {
-        webSocket.send("wait://" + key);
+        webSocket.send("wait://" + getUrlParams("sn"));
     };
     webSocket.onclose = function () {
-        onMinicapConnect(false);
-        onMinitouchConnect(false);
         util.serverConnected = false;
-        Materialize.toast('Lost Connection!!', 3000, 'rounded');
     };
     webSocket.onmessage = function(msg) {
         var str = msg.data;
         if (typeof(str) === "string") {
             if (str.startWith("open://")) {
                 var checkKey = str.substr(str.indexOf(":") + 3);
-                if (checkKey === key) {
-                    util.serverConnected = true;
-                    Materialize.toast('Client is OK, Waiting Minicap/touch Service', 3000, 'rounded');
-                }
+                util.serverConnected = true;
             } else if(str === "minicap" && util.serverConnected) {
-                onMinicapConnect(true);
                 waitingData();
-                Materialize.toast('Minicap Successe', 3000, 'rounded');
             } else if (str === "minitouch" && util.serverConnected) {
-                onMinitouchConnect(true);
-                Materialize.toast('Minitouch Successe', 3000, 'rounded');
             }
         } else {
             waitingData();
@@ -68,13 +52,19 @@ function connectServer() {
     }
 }
 
-function  restartMinicap(scale, rotate) {
-    onMinicapConnect(false);
-    // 发送命令
-    webSocket.send("config://" + scale + ":" + rotate);
+window.onload = function() {
+    // 获取请求参数
+    util.key = getUrlParams("sn");
 
+    util.ip = "127.0.0.1";
+    util.port = 6655;
+
+    connectServer();
+};
+
+function waitingData() {
+    webSocket.send("waiting");
 }
-
 function setCanvasImageData(data) {
     var blob = new Blob([data], {type: 'image/jpeg'});
     var URL = window.URL || window.webkitURL;
@@ -90,19 +80,8 @@ function setCanvasImageData(data) {
     };
     var u = URL.createObjectURL(blob);
     img.src = u;
-    var nowTS = new Date().getTime();
-    var usedTime = nowTS - minicapts;
-    usedTime = usedTime === 0 ? 1 : usedTime;
-    var fps = Math.round(1000.0 / usedTime);
-    totalData += data.size;
-    totalFPS += fps;
-    totalImageCount += 1;
-
-    var text = "fps: " + fps + "  avg:" + Math.round(totalFPS / totalImageCount) + " speed: " + Math.round(totalData / totalImageCount / 1024.0) + "KB/s";
-    // fpsLabel.innerText = text;
-    $("#minicap-fps").text(text);
-    minicapts = nowTS;
 }
+
 
 // 获取鼠标在html中的绝对位置
 function mouseCoords(event){

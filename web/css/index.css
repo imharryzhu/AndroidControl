@@ -1,61 +1,36 @@
-.top-nav {
-    background-color: #00b8d4;
-    height: 64px;
-    box-shadow: none;
+
+body {
+    background-color: #bdbdbd;
 }
 
-.connect-btn {
-    text-transform: none;
-    background-color: #00acc1;
-}
-
-.top-nav .text-title {
-    font-size: 40px;
-    line-height: 64px;
-    text-align: center;
-}
-
-.config .row {
-    margin-bottom: 0px;
-}
-
-.config .collapsible-header {
+.device-container {
+    /*border: 1px solid red;*/
     padding-left: 0px;
     padding-right: 0px;
 }
 
-.config .collapsible-header .row {
+.device-container img {
     width: 100%;
-    margin-left: 0px;
-    margin-right: 0px;
+    cursor: pointer;
 }
 
-#phone-screen {
-}
-
-#minicap-statu {
-    background-color: #757575;
-}
-
-#minitouch-statu {
-    background-color: #757575;
-}
-
-#minicap-fps {
+.device-detail {
     text-align: center;
 }
 
-#minicap-config {
-    position: fixed;
-    float: left;
+canvas{
+    width: 100%;
 }
 
-#dropdown-button-scale {
-    text-transform: none;
-    margin-top: 10px;
+@media (min-width: 768px) {
+    .device-container {
+    }
 }
-
-#dropdown-button-rotate {
-    text-transform: none;
-    margin-top: 10px;
+@media (min-width: 992px) {
+    .device-container {
+    }
+}
+@media (min-width: 1200px) {
+    .device-container {
+    }
 }

@@ -143,12 +143,12 @@ public class WSServer {
 
             // 启动minicap
             LocalClient localClient = new LocalClient(protocol);
-            Minicap cap = new Minicap();
+            Minicap cap = new Minicap(key);
             cap.addEventListener(localClient);
             cap.start(0.3f, 0);
 
             // 启动touch
-            Minitouch touch = new Minitouch();
+            Minitouch touch = new Minitouch(key);
             touch.addEventListener(localClient);
             touch.start();
 
@@ -178,6 +178,16 @@ public class WSServer {
         }
 
         DefaultFullHttpResponse onHttpGet(String uri) {
+
+            if (uri.startsWith("/shot")) {
+                // 获取serialNumber
+                String[] s = uri.split("/");
+                if (s.length == 3) {
+                    return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.copiedBuffer(new Minicap(s[2]).takeScreenShot()));
+                } else {
+                    return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
+                }
+            }
             return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
         }
     }

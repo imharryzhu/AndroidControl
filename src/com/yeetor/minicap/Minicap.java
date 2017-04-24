@@ -4,12 +4,15 @@ import com.android.ddmlib.*;
 import com.google.common.primitives.Bytes;
 import com.sun.deploy.util.ArrayUtil;
 import com.sun.deploy.util.StringUtils;
+import com.sun.xml.internal.messaging.saaj.packaging.mime.util.BASE64DecoderStream;
 import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
 import com.yeetor.adb.AdbForward;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.util.Constant;
 import com.yeetor.util.Util;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
 import javax.imageio.ImageIO;
 import javax.imageio.stream.FileImageOutputStream;
@@ -17,9 +20,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -163,48 +164,49 @@ public class Minicap {
         return forward;
     }
 
+    /**
+     * 屏幕截图
+     *
+     * 由于个平台的换行符导致二进制流输出有问题，二进制数据将先base64编码后传输
+     *
+     * @return
+     */
     public byte[] takeScreenShot() {
-        String command = getMinicapCommand(deviceSize.w, deviceSize.h, 1080, 1920, 0, false, "minicap", new String[] {"-s | wc -c"});
-
-        command = command + " && " + getMinicapCommand(deviceSize.w, deviceSize.h, 1080, 1920, 0, false, "minicap", new String[] {"-s"});
+        String command = getMinicapCommand(deviceSize.w, deviceSize.h, 1080, 1920, 0, false, "minicap", new String[] {"-s -b"});
         BinaryOutputReceiver receiver = new BinaryOutputReceiver();
         try {
             device.executeShellCommand(command, receiver, 0);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         // remove text output
         byte[] bytes = receiver.getOutput();
-        int i = 0;
-        for (; i < bytes.length; i++) {
-            if (bytes[i] == -1 && bytes[i + 1] == -40) {
-                break; // is jpg?
+        do {
+            String dataStr = new String(bytes);
+            System.out.println(dataStr);
+            int jpgStart = dataStr.indexOf("/9j/");
+
+            if (jpgStart >= 0) {
+                dataStr =  dataStr.substring(jpgStart) ; // jpg特征码base64
+            } else {
+                break;
             }
-        }
 
-        if (i == bytes.length) {
-            System.out.println("not a jpg file!!");
-            return null;
-        }
+            try {
+                bytes = new BASE64Decoder().decodeBuffer(dataStr);
+            } catch (IOException e) {
+                e.printStackTrace();
+                break;
+            }
+            if (bytes[0] != -1 && bytes[1] != -40) {
+                System.out.println("not a jpg file!!");
+                break;
+            }
 
-        // in windows, must replace 0d0d0a => 0a
-        String s = new String(Arrays.copyOfRange(bytes, 0, i + 1));
-        System.out.println(s);
-        bytes = Arrays.copyOfRange(bytes, i, bytes.length);
-        ArrayList<Byte> l = new ArrayList<Byte>();
-        for (i = 0; i < bytes.length; ) {
-//            if (bytes[i] == 0x0d && bytes[i + 1] == 0x0a) {
-//                l.add((byte) 0x0a);
-//                System.out.println(i);
-//                i += 3;
-//                continue;
-//            }
-            l.add(bytes[i]);
-            i++;
-        }
+            return bytes;
+        } while(false);
 
-        return Bytes.toArray(l);
+        return new byte[0];
     }
 
     public void start(int ow, int oh, int dw, int dh, int rotate, boolean shipFrame, String[] args) {
