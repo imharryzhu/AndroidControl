@@ -88,6 +88,9 @@ public class WSServer {
                 if (protocol != null) {
                     protocol.getLocalClient().setWaitting(true);
                 }
+            } else if (text.startsWith("keyevent://")) {
+
+
             } else if (text.startsWith("config://")) {
                 Protocol protocol = findProtocolByBrowser(ctx);
                 if (protocol != null) {
