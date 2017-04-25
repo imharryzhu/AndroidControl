@@ -186,3 +186,4 @@ canvas.onmouseup = function (event) {
     command += "c\n";
     webSocket.send(command);
 };
+

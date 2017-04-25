@@ -5,8 +5,8 @@ body {
 
 .device-container {
     /*border: 1px solid red;*/
-    padding-left: 0px;
-    padding-right: 0px;
+    padding: 5px 5px 5px 5px;
+    background-color: #f9f9f9;
 }
 
 .device-container img {
