@@ -98,6 +98,20 @@ public class Minitouch {
         minitouchInitialThread = startInitialThread("127.0.0.1", forward.getPort());
     }
 
+    public void kill() {
+        if (minitouchThread != null) {
+            minitouchThread.stop();
+        }
+        // 关闭socket
+        if (minitouchSocket != null && minitouchSocket.isConnected()) {
+            try {
+                minitouchSocket.close();
+            } catch (IOException e) {
+            }
+            minitouchSocket = null;
+        }
+    }
+
     public void sendEvent(String str) {
         if (minitouchOutputStream == null) {
             return;

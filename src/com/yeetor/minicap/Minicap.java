@@ -54,6 +54,8 @@ public class Minicap {
 
     private Banner banner;
 
+    private Socket minicapSocket;
+
 
     public static void installMinicap(IDevice device) throws MinicapInstallException {
         if (device == null) {
@@ -245,6 +247,38 @@ public class Minicap {
         start(scale, rotate);
     }
 
+    public void kill() {
+        running = false;
+        if (minicapThread != null) {
+            minicapThread.stop();
+        }
+
+        // 关闭socket
+        if (minicapSocket != null && minicapSocket.isConnected()) {
+            try {
+                minicapSocket.close();
+            } catch (IOException e) {
+            }
+            minicapSocket = null;
+        }
+
+        if (dataReaderThread != null) {
+            try {
+                dataReaderThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (imageParserThread != null) {
+            try {
+                imageParserThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     /**
      * 启动线程开启 minicap
      * @param shellCommand
@@ -286,14 +320,14 @@ public class Minicap {
                     int tryTime = 20;
                     while (true) {
                         // 连接minicap启动的服务
-                        Socket socket = new Socket(host, port);
-                        InputStream inputStream = socket.getInputStream();
+                        minicapSocket = new Socket(host, port);
+                        InputStream inputStream = minicapSocket.getInputStream();
                         bytes = new byte[4096];
                         int n = inputStream.read(bytes);
 
                         if (n == -1) {
                             Thread.sleep(10);
-                            socket.close();
+                            minicapSocket.close();
                         } else {
                             // bytes内包含有信息，需要给Dataparser处理
                             dataQueue.add(Arrays.copyOfRange(bytes, 0, n));
@@ -301,7 +335,7 @@ public class Minicap {
                             onStartup(true);
 
                             // 启动 DataReader  ImageParser
-                            dataReaderThread = startDataReaderThread(socket);
+                            dataReaderThread = startDataReaderThread(minicapSocket);
                             imageParserThread = startImageParserThread();
                             break;
                         }

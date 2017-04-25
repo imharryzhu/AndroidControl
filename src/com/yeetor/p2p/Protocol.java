@@ -75,4 +75,18 @@ public class Protocol {
     public LocalClient getLocalClient() {
         return localClient;
     }
+
+    public void close() {
+
+        if (minicap != null) {
+            minicap.kill();
+            minicap = null;
+        }
+
+        if (minitouch != null) {
+            minitouch.kill();
+            minitouch = null;
+        }
+
+    }
 }

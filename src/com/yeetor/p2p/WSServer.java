@@ -67,12 +67,14 @@ public class WSServer {
             for (Protocol protocol : protocolList) {
                 if (protocol.getBroswerSocket() != null && protocol.getBroswerSocket() == ctx) {
                     protocol.broswerDisconnect();
+                    protocol.close();
                     protocolList.remove(protocol);
                     break;
                 }
 
                 if (protocol.getClientSocket() != null && protocol.getClientSocket() == ctx) {
                     protocol.clientDisconnect();
+                    protocol.close();
                     protocolList.remove(protocol);
                     break;
                 }
