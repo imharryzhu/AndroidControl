@@ -42,6 +42,7 @@ function connectServer() {
                 var checkKey = str.substr(str.indexOf(":") + 3);
                 util.serverConnected = true;
             } else if(str === "minicap" && util.serverConnected) {
+                onMinicapReady();
                 waitingData();
             } else if (str === "minitouch" && util.serverConnected) {
                 onMinitouchReady();
@@ -116,6 +117,27 @@ var isDown = false;
 
 function onMinitouchReady() {
     $(canvas).toggleClass("minitouch");
+    $.notify("Minitouch Ready!", {
+        allow_dismiss: false,
+        delay: 2000,
+        placement: {
+            align: "right"
+        },
+        type: "success"
+    });
+}
+
+function onMinicapReady() {
+    $.notify("Minicap Ready!", {
+        allow_dismiss: false,
+        delay: 2000,
+        placement: {
+            align: "right"
+        },
+        type: "success"
+    });
+    // var canvas = $("#phone-screen");
+    // $(".screen-container ul").offset({left: canvas.offset().left + canvas.width()});
 }
 
 canvas.onmousedown = function (event) {
@@ -186,4 +208,3 @@ canvas.onmouseup = function (event) {
     command += "c\n";
     webSocket.send(command);
 };
-

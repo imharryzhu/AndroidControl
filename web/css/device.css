@@ -5,3 +5,14 @@
 #phone-screen[class~="minitouch"] {
     cursor: default;
 }
+
+.screen-container {
+	text-align: center;
+}
+
+.screen-container ul {
+	position: relative;
+	text-align: left;
+	display: inline-block;
+	vertical-align: top;
+}
