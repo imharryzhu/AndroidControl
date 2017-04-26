@@ -83,34 +83,30 @@ public class WSServer {
 
         @Override
         public void onTextMessage(ChannelHandlerContext ctx, String text) {
-            if (text.startsWith("wait://")) {
-                wait(ctx, text);
-            } else if ("waiting".equals(text)) {
-                Protocol protocol = findProtocolByBrowser(ctx);
-                if (protocol != null) {
-                    protocol.getLocalClient().setWaitting(true);
-                }
-            } else if (text.startsWith("keyevent://")) {
+            System.out.println(text);
+            Command command = Command.ParseCommand(text);
+            if (command != null) {
 
-
-            } else if (text.startsWith("config://")) {
-                Protocol protocol = findProtocolByBrowser(ctx);
-                if (protocol != null) {
-                    String s = text.split("://")[1];
-                    float scale = Float.parseFloat(s.split(":")[0]);
-                    int ro = Integer.parseInt(s.split(":")[1]);
-                    protocol.getMinicap().reStart(scale, ro);
+                switch (command.getSchem()) {
+                    case WAIT:
+                        initLocalClient(ctx, command);
+                        break;
+                    case START:
+                    case WATTING:
+                    case TOUCH:
+                    case KEYEVENT:
+                    case INPUT:
+                        executeCommand(ctx, command);
+                        break;
+                    case SHOT:
+                        sendShot(ctx, command);
+                        break;
+                    case DEVICES:
+                        sendDevicesJson(ctx);
+                        break;
                 }
-            } else if (text.equals("devices")){
-                sendDevicesJson(ctx);
-            } else if (text.startsWith("shot://")){
-                String sn = text.split("://")[1];
-                sendShot(ctx, sn);
-            } else { // touch message
-                Protocol protocol = findProtocolByBrowser(ctx);
-                if (protocol != null) {
-                    protocol.getMinitouch().sendEvent(text);
-                }
+            } else {
+                // Invalid Commands
             }
         }
 
@@ -129,38 +125,41 @@ public class WSServer {
             }
         }
 
-        void wait(final ChannelHandlerContext ctx, String text) {
-            String key = text.substring("wait://".length());
-            // TODO 目前在本地跑，所以不需要key来验证
-//            if (key.isEmpty()) {
-//                ctx.channel().close();
-//                return;
-//            }
+        void initLocalClient(final ChannelHandlerContext ctx, Command command) {
 
-            // TODO 目前直接通知客户端准备完毕
+            String sn = command.getString("sn", null);
+            if (sn == null) {
+                ctx.channel().close();
+                return;
+            }
 
-            ctx.channel().writeAndFlush(new TextWebSocketFrame("open://" + key));
+            ctx.channel().writeAndFlush(new TextWebSocketFrame("open://" + sn));
 
             Protocol protocol = new Protocol();
-            protocol.setKey(key);
+            protocol.setKey(sn);
             protocol.setBroswerSocket(ctx);
             protocolList.add(protocol);
 
-            // 启动minicap
             LocalClient localClient = new LocalClient(protocol);
-            Minicap cap = new Minicap(key);
-            cap.addEventListener(localClient);
-            cap.start(0.3f, 0);
-
-            // 启动touch
-            Minitouch touch = new Minitouch(key);
-            touch.addEventListener(localClient);
-            touch.start();
-
-
-            protocol.setMinicap(cap);
-            protocol.setMinitouch(touch);
             protocol.setLocalClient(localClient);
+        }
+
+        void executeCommand(ChannelHandlerContext ctx, Command command) {
+            Protocol protocol = null;
+            // 寻找与之匹配的protocol
+            for (Protocol p : protocolList) {
+                if (p.getBroswerSocket() != null && p.getBroswerSocket() == ctx) {
+                    protocol = p;
+                    break;
+                }
+                if (p.getClientSocket() != null && p.getClientSocket() == ctx) {
+                    protocol = p;
+                    break;
+                }
+            }
+            if (protocol != null) {
+                protocol.getLocalClient().executeCommand(ctx, command);
+            }
         }
 
         void sendDevicesJson(ChannelHandlerContext ctx) {
@@ -173,13 +172,10 @@ public class WSServer {
             ctx.channel().writeAndFlush(new TextWebSocketFrame(json));
         }
 
-        void sendShot(ChannelHandlerContext ctx, String sn) {
+        void sendShot(ChannelHandlerContext ctx, Command command) {
+            String sn = command.getString("sn", null);
             Minicap cap = new Minicap(sn);
             ctx.channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.copiedBuffer(cap.takeScreenShot())));
-        }
-
-        void sendImage(ChannelHandlerContext ctx, byte[] data) {
-            ctx.writeAndFlush(new BinaryWebSocketFrame(Unpooled.copiedBuffer(data)));
         }
 
         DefaultFullHttpResponse onHttpGet(String uri) {

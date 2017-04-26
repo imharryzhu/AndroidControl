@@ -248,6 +248,8 @@ public class Minicap {
     }
 
     public void kill() {
+        onClose();
+
         running = false;
         if (minicapThread != null) {
             minicapThread.stop();
@@ -397,6 +399,12 @@ public class Minicap {
     private void onStartup(boolean success) {
         for (MinicapListener listener : listenerList) {
             listener.onStartup(this, success);
+        }
+    }
+
+    private void onClose() {
+        for (MinicapListener listener : listenerList) {
+            listener.onClose(this);
         }
     }
 

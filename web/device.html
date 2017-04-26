@@ -10,17 +10,60 @@
 <body>
     <div class="screen-container">
         <canvas id="phone-screen">
-        </canvas> 
-        <ul>
-            <li>缩放设置</li>
-            <li>旋转设置</li>
+        </canvas>
+        <ul class="menu">
+            <!--清晰度设置-->
+            <li>
+                <div class="dropdown">
+                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownScale" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        清晰度设置
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownScale">
+                        <li>
+                            <div class="input-group">
+                                <span class="input-group-addon" id="sizing-addon1">@</span>
+                                <input type="text" id="minicapScaleText" class="form-control" size="1" placeholder="0.3">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-default" type="button" onclick="onMinicapScaleChange()">提交</button>
+                                </span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
+            <li>
+                <div class="dropdown">
+                    <button class="btn btn-default dropdown-toggle" type="button" id="dropdownRotate" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        旋转角度设置
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownRotate">
+                        <li>
+                            <div class="btn-group" data-toggle="buttons">
+                                <label class="btn btn-default" onclick="onMinicapRotateChange(0)" >
+                                    <input type="radio" name="options" id="option1"autocomplete="off">0
+                                </label>
+                                <label class="btn btn-default" onclick="onMinicapRotateChange(90)">
+                                    <input type="radio" name="options" id="option2" autocomplete="off">90
+                                </label>
+                                <label class="btn btn-default" onclick="onMinicapRotateChange(180)">
+                                    <input type="radio" name="options" id="option3" autocomplete="off">180
+                                </label>
+                                <label class="btn btn-default" onclick="onMinicapRotateChange(270)">
+                                    <input type="radio" name="options" id="option4" autocomplete="off">270
+                                </label>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </li>
             <li>键盘输入映射</li>
-            <li>文字输入<input type="text">
-            <button>输入</button>
+            <li>文字输入<input type="text" id="text-input">
+            <button onclick="textInput()">输入</button>
             </li>
         </ul>
+
     </div>
-    
 
 
     <!-- jQuery -->
@@ -28,6 +71,7 @@
     <script src="js/jquery.jsonp.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/bootstrap-notify.min.js"></script>
+    <script src="js/keyeventConvert.js"></script>
     <script src="js/device.js"></script>
 </body>
 </html>

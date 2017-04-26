@@ -10,8 +10,8 @@
 	text-align: center;
 }
 
-.screen-container ul {
-	position: relative;
+.screen-container .menu {
+	position: fixed;
 	text-align: left;
 	display: inline-block;
 	vertical-align: top;

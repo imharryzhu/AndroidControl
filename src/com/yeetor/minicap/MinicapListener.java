@@ -6,6 +6,8 @@ package com.yeetor.minicap;
 public interface MinicapListener {
     // minicap启动完毕后
     public void onStartup(Minicap minicap, boolean success);
+    // minicap关闭
+    public void onClose(Minicap minicap);
     // banner信息读取完毕
     public void onBanner(Minicap minicap, Banner banner);
     // 读取到图片信息

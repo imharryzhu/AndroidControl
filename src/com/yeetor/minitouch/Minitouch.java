@@ -99,6 +99,7 @@ public class Minitouch {
     }
 
     public void kill() {
+        onClose();
         if (minitouchThread != null) {
             minitouchThread.stop();
         }
@@ -121,6 +122,14 @@ public class Minitouch {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendKeyEvent(int k) {
+        AdbServer.executeShellCommand(device, "input keyevent " + k);
+    }
+
+    public void inputText(String str) {
+        AdbServer.executeShellCommand(device, "input text " + str);
     }
 
     /**
@@ -228,4 +237,9 @@ public class Minitouch {
         }
     }
 
+    private void onClose() {
+        for (MinitouchListener listener : listenerList) {
+            listener.onClose(this);
+        }
+    }
 }

@@ -1,5 +1,7 @@
 package com.yeetor.p2p;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
@@ -8,6 +10,7 @@ import com.yeetor.minitouch.MinitouchListener;
 import com.yeetor.p2p.Protocol;
 import com.yeetor.p2p.WSServer;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import javafx.scene.image.Image;
@@ -29,11 +32,38 @@ public class LocalClient implements MinicapListener, MinitouchListener {
         this.protocol = protocol;
     }
 
+
+    public void executeCommand(ChannelHandlerContext ctx, Command command) {
+        switch (command.getSchem()) {
+            case START:
+                startCommand(ctx, command);
+                break;
+            case TOUCH:
+                touchCommand(ctx, command);
+            case WATTING:
+                waittingCommand(ctx, command);
+                break;
+            case KEYEVENT:
+                keyeventCommand(command);
+                break;
+            case INPUT:
+                inputCommand(command);
+                break;
+        }
+    }
+
     // minicap启动完毕后
     @Override
     public void onStartup(Minicap minicap, boolean success) {
+        if (protocol != null && protocol.getBroswerSocket() != null && success) {
+            protocol.getBroswerSocket().channel().writeAndFlush(new TextWebSocketFrame("minicap://open"));
+        }
+    }
+
+    @Override
+    public void onClose(Minicap minicap) {
         if (protocol != null && protocol.getBroswerSocket() != null) {
-            protocol.getBroswerSocket().channel().writeAndFlush(new TextWebSocketFrame("minicap"));
+            protocol.getBroswerSocket().channel().writeAndFlush(new TextWebSocketFrame("minicap://close"));
         }
     }
 
@@ -55,15 +85,22 @@ public class LocalClient implements MinicapListener, MinitouchListener {
             }
             isWaitting = false;
         } else {
-            dataQueue.add(new ImageData(data));
             clearObsoleteImage();
+            dataQueue.add(new ImageData(data));
         }
     }
 
     @Override
     public void onStartup(Minitouch minitouch, boolean success) {
         if (protocol != null && protocol.getBroswerSocket() != null && success) {
-            protocol.getBroswerSocket().channel().writeAndFlush(new TextWebSocketFrame("minitouch"));
+            protocol.getBroswerSocket().channel().writeAndFlush(new TextWebSocketFrame("minitouch://open"));
+        }
+    }
+
+    @Override
+    public void onClose(Minitouch minitouch) {
+        if (protocol != null && protocol.getBroswerSocket() != null) {
+            protocol.getBroswerSocket().channel().writeAndFlush(new TextWebSocketFrame("minitouch://close"));
         }
     }
 
@@ -121,5 +158,67 @@ public class LocalClient implements MinicapListener, MinitouchListener {
         long timesp;
         byte[] data;
     }
+
+    private void startCommand(ChannelHandlerContext ctx, Command command) {
+        String str = command.getString("type", null);
+        if (str != null) {
+            if (str.equals("minicap")) {
+                startMinicap(command);
+            } else if (str.equals("minitouch")) {
+                startMinitouch(command);
+            }
+        }
+    }
+
+    private void waittingCommand(ChannelHandlerContext ctx, Command command) {
+        setWaitting(true);
+    }
+
+    private void keyeventCommand(Command command) {
+        System.out.println(command.getContent());
+        int k = Integer.parseInt(command.getContent());
+        protocol.getMinitouch().sendKeyEvent(k);
+    }
+
+
+    private void touchCommand(ChannelHandlerContext ctx, Command command) {
+        String str = (String) command.getContent();
+        protocol.getMinitouch().sendEvent(str);
+    }
+
+    private void inputCommand(Command command) {
+        String str = (String) command.getContent();
+        protocol.getMinitouch().inputText(str);
+    }
+
+    private void startMinicap(Command command) {
+        if (protocol.getMinicap() != null) {
+            protocol.getMinicap().kill();
+        }
+
+        // 获取请求的配置
+        JSONObject obj = (JSONObject) command.get("config");
+        Float scale = obj.getFloat("scale");
+        Float rotate = obj.getFloat("rotate");
+        if (scale < 0.01) {scale = 0.01f;}
+        if (scale > 1.0) {scale = 1.0f;}
+        Minicap minicap = new Minicap(protocol.getKey());
+        minicap.addEventListener(this);
+        minicap.start(scale, rotate.intValue());
+        protocol.setMinicap(minicap);
+    }
+
+    private void startMinitouch(Command command) {
+        if (protocol.getMinitouch() != null) {
+            protocol.getMinitouch().kill();
+        }
+
+        Minitouch minitouch = new Minitouch(protocol.getKey());
+        minitouch.addEventListener(this);
+        minitouch.start();
+        protocol.setMinitouch(minitouch);
+    }
+
+
 
 }

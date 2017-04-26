@@ -1,0 +1,18 @@
+
+命令://内容
+被 {} 包裹的内容，说明这个是JSON格式
+
+wait://{sn:"SerialNumber"}
+open://{sn:"SerialNumber"}
+start://{type:"minicap"|"minitouch", config:{rotate:xx, scale:xx}}
+touch://minitouch的命令格式
+input://要输入的文本
+waitting://
+shot://{sn:"SerialNumber"}
+minicap://open|close
+minitouch://open|close
+keyevent://key
+
+以下的暂未确定
+device://
+

@@ -18,25 +18,10 @@ window.onresize = function () {
  */
 function requestDevices() {
     var ws = new WebSocket("ws://127.0.0.1:6655");
-    ws.onopen = function (p1) { ws.send("devices"); };
+    ws.onopen = function (p1) { ws.send("devices://"); };
     ws.onmessage = function (d) {
         fillDevices(JSON.parse(d.data));
         window.onresize();
-        ws.close();
-    };
-}
-
-/**
- * 截图
- * @param deviceInfo
- *
- * return Blob;
- */
-function takeScreenShot(sn, args) {
-    var ws = new WebSocket("ws://127.0.0.1:6655");
-    ws.onopen = function (p1) { ws.send("shot://" + sn); };
-    ws.onmessage = function (d) {
-        args.success(d.data);
         ws.close();
     };
 }

@@ -2,7 +2,21 @@
  * Created by harry on 2017/4/24.
  */
 
-var util = {};
+
+var util = {
+    setMinicapScale:function (scale) {
+        localStorage.setItem("minicap_scale", scale);
+    },
+    getMinicapScale:function () {
+        return localStorage.getItem("minicap_scale");
+    },
+    setMinicapRotate:function (rotate) {
+        localStorage.setItem("minicap_rotate", rotate);
+    },
+    getMinicapRotate:function () {
+        return localStorage.getItem("minicap_rotate");
+    }
+};
 var webSocket = null;
 
 String.prototype.startWith=function(str){
@@ -30,7 +44,7 @@ function connectServer() {
     var port = util.port;
     webSocket = new WebSocket("ws://" + ip + ":" + port);
     webSocket.onopen = function () {
-        webSocket.send("wait://" + getUrlParams("sn"));
+        webSocket.send("wait://" + JSON.stringify({sn:getUrlParams("sn")}));
     };
     webSocket.onclose = function () {
         util.serverConnected = false;
@@ -41,11 +55,23 @@ function connectServer() {
             if (str.startWith("open://")) {
                 var checkKey = str.substr(str.indexOf(":") + 3);
                 util.serverConnected = true;
-            } else if(str === "minicap" && util.serverConnected) {
-                onMinicapReady();
-                waitingData();
-            } else if (str === "minitouch" && util.serverConnected) {
-                onMinitouchReady();
+                requestStartMinicap();
+                requestStartMinitouch();
+            } else if(str.startWith("minicap://") && util.serverConnected) {
+                var stat = str.substr(str.indexOf(":") + 3);
+                if (stat === "open") {
+                    onMinicapOpen();
+                    waitingData();
+                } else {
+                    onMinicapClose();
+                }
+            } else if (str.startWith("minitouch://") && util.serverConnected) {
+                var stat = str.substr(str.indexOf(":") + 3);
+                if (stat === "open") {
+                    onMinitouchOpen();
+                } else {
+                    onMinitouchClose();
+                }
             }
         } else {
             waitingData();
@@ -61,11 +87,21 @@ window.onload = function() {
     util.ip = "127.0.0.1";
     util.port = 6655;
 
+    $("#minicapScaleText").val(util.getMinicapScale());
+
+    var s = util.getMinicapRotate();
+
     connectServer();
 };
 
+document.onkeydown = function (event) {
+    var e = event || window.event || arguments.callee.caller.arguments[0];
+    console.log(e.keyCode);
+    sendKeyEvent(e.keyCode);
+};
+
 function waitingData() {
-    webSocket.send("waiting");
+    webSocket.send("waitting://");
 }
 function setCanvasImageData(data) {
     var blob = new Blob([data], {type: 'image/jpeg'});
@@ -115,29 +151,90 @@ function getXAndY(control, event){
 
 var isDown = false;
 
-function onMinitouchReady() {
+function onMinitouchOpen() {
     $(canvas).toggleClass("minitouch");
     $.notify("Minitouch Ready!", {
         allow_dismiss: false,
         delay: 2000,
         placement: {
-            align: "right"
+            align: "left"
         },
         type: "success"
     });
 }
 
-function onMinicapReady() {
+function onMinitouchClose() {
+    $(canvas).toggleClass("minitouch");
+    $.notify("Minitouch Close!", {
+        allow_dismiss: false,
+        delay: 2000,
+        placement: {
+            align: "left"
+        },
+        type: "danger"
+    });
+}
+
+function onMinicapOpen() {
     $.notify("Minicap Ready!", {
         allow_dismiss: false,
         delay: 2000,
         placement: {
-            align: "right"
+            align: "left"
         },
         type: "success"
     });
-    // var canvas = $("#phone-screen");
-    // $(".screen-container ul").offset({left: canvas.offset().left + canvas.width()});
+}
+
+function onMinicapClose() {
+    $.notify("Minicap Close!", {
+        allow_dismiss: false,
+        delay: 2000,
+        placement: {
+            align: "left"
+        },
+        type: "danger"
+    });
+}
+
+function onMinicapScaleChange() {
+    var inputScale = $("#minicapScaleText").val();
+    if (util.getMinicapScale() === inputScale) {
+        return;
+    }
+    util.setMinicapScale(inputScale);
+    requestStartMinicap();
+}
+
+function onMinicapRotateChange(rotate) {
+    var inputRotate = rotate;
+    if (util.getMinicapRotate() ===inputRotate) {
+        return;
+    }
+    util.setMinicapRotate(inputRotate);
+    requestStartMinicap();
+}
+
+function requestStartMinicap() {
+    var rotate = parseInt(util.getMinicapRotate());
+    var scale = parseFloat(util.getMinicapScale());
+    webSocket.send("start://" + JSON.stringify({type:"minicap", config:{'rotate':rotate, 'scale':scale}}));
+}
+
+function requestStartMinitouch() {
+    webSocket.send("start://" + JSON.stringify({type: "minitouch"}));
+}
+
+function textInput(str) {
+    webSocket.send("input://" + $("#text-input").val());
+}
+
+function sendTouchEvent(minitouchStr) {
+    webSocket.send("touch://" + minitouchStr);
+}
+
+function sendKeyEvent(keyevent) {
+    webSocket.send("keyevent://" + convertAndroidKeyCode(keyevent));
 }
 
 canvas.onmousedown = function (event) {
@@ -154,7 +251,7 @@ canvas.onmousedown = function (event) {
 
     var command = "d 0 " + x + " " + y + " 50\n";
     command += "c\n";
-    webSocket.send(command);
+    sendTouchEvent(command);
 };
 
 canvas.onmousemove = function (event) {
@@ -170,7 +267,7 @@ canvas.onmousemove = function (event) {
 
     var command = "m 0 " + x + " " + y + " 50\n";
     command += "c\n";
-    webSocket.send(command);
+    sendTouchEvent(command);
 };
 
 canvas.onmouseover = function (event) {
@@ -190,7 +287,7 @@ canvas.onmouseout = function (event) {
 
     var command = "u 0\n";
     command += "c\n";
-    webSocket.send(command);
+    sendTouchEvent(command);
 };
 
 canvas.onmouseup = function (event) {
@@ -206,5 +303,5 @@ canvas.onmouseup = function (event) {
 
     var command = "u 0\n";
     command += "c\n";
-    webSocket.send(command);
+    sendTouchEvent(command);
 };
