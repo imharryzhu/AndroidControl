@@ -12,6 +12,11 @@ function convertAndroidKeyCode(keycode) {
         16:59,
         // enter
         13:66,
+        // 左上右下
+        37:21,
+        38:19,
+        39:22,
+        40:20,
         // 0-9
         48:7,
         49:8,

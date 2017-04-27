@@ -18,6 +18,11 @@ body {
     text-align: center;
 }
 
+.setting {
+    display: inline-block;
+    float: right;
+}
+
 canvas{
     width: 100%;
 }

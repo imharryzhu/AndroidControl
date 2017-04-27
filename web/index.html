@@ -14,12 +14,43 @@
             <div class="row">
             </div>
         </div>
+        <div class="setting">
+            <button type="button" class="btn" data-toggle="modal" data-target="#settingModal">设置</button>
+        </div>
 
+
+        <div class="modal fade" id="settingModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">设置</h4>
+                    </div>
+                    <div class="modal-body">
+                        <label for="server-ip">AndroidControl服务器IP</label>
+                        <div class="input-group">
+                            <span class="input-group-addon" id="server-ip-label">ip</span>
+                            <input type="text" class="form-control" id="server-ip" aria-describedby="basic-addon3">
+                        </div>
+                        <label for="server-port-label">AndroidControl服务器端口号</label>
+                        <div class="input-group">
+                            <span class="input-group-addon" id="server-port-label">port</span>
+                            <input type="text" class="form-control" id="server-port" aria-describedby="basic-addon3">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="onServerConfig()">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- jQuery -->
         <script src="js/jquery.min.js"></script>
         <script src="js/jquery.jsonp.js"></script>
         <script src="js/bootstrap.min.js"></script>
+        <script src="js/server.js"></script>
         <script src="js/index.js"></script>
     </body>
 </html>

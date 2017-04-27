@@ -40,9 +40,7 @@ function getUrlParams(name) {
 
 function connectServer() {
     var key = util.key;
-    var ip = util.ip;
-    var port = util.port;
-    webSocket = new WebSocket("ws://" + ip + ":" + port);
+    webSocket = new WebSocket("ws://" + server.getServerIp() + ":" + server.getServerPort());
     webSocket.onopen = function () {
         webSocket.send("wait://" + JSON.stringify({sn:getUrlParams("sn")}));
     };

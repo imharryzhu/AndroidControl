@@ -200,8 +200,10 @@ public class LocalClient implements MinicapListener, MinitouchListener {
         JSONObject obj = (JSONObject) command.get("config");
         Float scale = obj.getFloat("scale");
         Float rotate = obj.getFloat("rotate");
+        if (scale == null) {scale = 0.3f;}
         if (scale < 0.01) {scale = 0.01f;}
         if (scale > 1.0) {scale = 1.0f;}
+        if (rotate == null) { rotate = 0.0f; }
         Minicap minicap = new Minicap(protocol.getKey());
         minicap.addEventListener(this);
         minicap.start(scale, rotate.intValue());

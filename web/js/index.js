@@ -2,10 +2,6 @@
  * Created by harry on 2017/4/21.
  */
 
-window.onload = function() {
-    requestDevices();
-};
-
 window.onresize = function () {
   var dc = $(".device-container");
   dc.css("height", dc.width() * 2);
@@ -17,7 +13,7 @@ window.onresize = function () {
  * return json
  */
 function requestDevices() {
-    var ws = new WebSocket("ws://127.0.0.1:6655");
+    var ws = new WebSocket("ws://" + server.getServerIp() + ":" + server.getServerPort());
     ws.onopen = function (p1) { ws.send("devices://"); };
     ws.onmessage = function (d) {
         fillDevices(JSON.parse(d.data));
@@ -40,12 +36,32 @@ var fillDevices = function(array) {
         var deviceInfo = array[i];
         var innerCanvas = "";
         var html = "<div class='col-lg-2 col-md-3 col-sm-3 col-xs-6  device-container'>" +
-            "<img class='' src='" + "http://127.0.0.1:6655/shot/" + deviceInfo.sn + "' onclick='onDeviceClick(\"" + deviceInfo.sn + "\")' />" +
+            "<img class='' src='" + "http://" + server.getServerIp() + ":" + server.getServerPort() + "/shot/" + deviceInfo.sn + "' onclick='onDeviceClick(\"" + deviceInfo.sn + "\")' />" +
             "<div class='device-detail'><sapn>" + deviceInfo.sn + "</sapn></div>" +
             "</div>";
         var dom = $(html);
         $(".container-fluid .row").append(dom);
     }
 };
+
+
+function onServerConfig() {
+    var ip = $("#server-ip").val();
+    var port = $("#server-port").val();
+
+    server.setServerIp(ip);
+    server.setServerPort(port);
+    $("#settingModal").modal('toggle');
+}
+
+window.onload = function () {
+    $("#settingModal").on('show.bs.modal', function (e) {
+        $("#server-ip").val(server.getServerIp());
+        $("#server-port").val(server.getServerPort());
+    });
+
+    requestDevices();
+};
+
 
 
