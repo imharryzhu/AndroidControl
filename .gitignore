@@ -3,3 +3,8 @@
 .idea
 out/*
 *.class
+
+# gradle
+
+build
+.gradle

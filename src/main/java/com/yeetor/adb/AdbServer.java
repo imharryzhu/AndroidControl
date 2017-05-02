@@ -4,8 +4,6 @@ import com.android.ddmlib.*;
 import com.android.ddmlib.TimeoutException;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import com.sun.xml.internal.bind.v2.model.core.ID;
-import jdk.internal.org.objectweb.asm.commons.AdviceAdapter;
 
 import java.io.BufferedReader;
 import java.io.File;
