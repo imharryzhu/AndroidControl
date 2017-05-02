@@ -62,7 +62,7 @@ public class Minicap {
         String abi = device.getProperty(Constant.PROP_ABI).trim();
 
         // minicap
-        File minicap_bin = new File(Constant.getMinicap(), abi + File.separator + MINICAP_BIN);
+        File minicap_bin = Constant.getMinicap(abi);
         if (!minicap_bin.exists()) {
             throw new MinicapInstallException("File: " + minicap_bin.getAbsolutePath() + " not exists!");
         }
@@ -75,7 +75,7 @@ public class Minicap {
         AdbServer.executeShellCommand(device, "chmod 777 " + REMOTE_PATH + "/" + MINICAP_BIN);
 
         // minicap.so
-        File minicap_so = new File(Constant.getMinicapSo(), "android-" + sdk + File.separator + abi + File.separator + MINICAP_SO);
+        File minicap_so = Constant.getMinicapSo(abi, sdk);
         if (!minicap_so.exists()) {
             throw new MinicapInstallException("File: " + minicap_so.getAbsolutePath() + " not exists!");
         }

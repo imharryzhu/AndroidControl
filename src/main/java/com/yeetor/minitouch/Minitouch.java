@@ -43,7 +43,7 @@ public class Minitouch {
         String sdk = device.getProperty(Constant.PROP_SDK).trim();
         String abi = device.getProperty(Constant.PROP_ABI).trim();
 
-        File minitouch_bin = new File(Constant.getMinitouchBin(), abi + File.separator + MINITOUCH_BIN);
+        File minitouch_bin = Constant.getMinitouchBin(abi);
         if (!minitouch_bin.exists()) {
             throw new MinitouchInstallException("File: " + minitouch_bin.getAbsolutePath() + " not exists!");
         }
