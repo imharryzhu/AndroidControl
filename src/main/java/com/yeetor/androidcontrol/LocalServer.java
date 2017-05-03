@@ -1,11 +1,9 @@
-package com.yeetor.p2p;
+package com.yeetor.androidcontrol;
 
 import com.alibaba.fastjson.JSON;
 import com.android.ddmlib.IDevice;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.minicap.*;
-import com.yeetor.minitouch.Minitouch;
-import com.yeetor.util.Util;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.*;
 import io.netty.channel.*;
@@ -14,26 +12,20 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import jdk.nashorn.internal.ir.debug.JSONWriter;
-import jdk.nashorn.internal.parser.JSONParser;
-import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Created by harry on 2017/4/18.
  */
-public class WSServer {
+public class LocalServer {
 
     private int port = -1;
     List<Protocol> protocolList;
 
-    public WSServer(int port) {
+    public LocalServer(int port) {
         listen(port);
         protocolList = new LinkedList<Protocol>();
     }
@@ -49,14 +41,15 @@ public class WSServer {
         ServerBootstrap bootstrap = new ServerBootstrap();
         bootstrap.group(bossGroup, workerGroup).
                 channel(NioServerSocketChannel.class).
-                option(ChannelOption.SO_BACKLOG, 128).
                 childOption(ChannelOption.SO_KEEPALIVE, true).
-                childHandler(new ChildChannel(new WebsocketEventImp()));
+                childHandler(new ChildChannel(new LocalServerWebsocketEventImp()));
+        System.out.println("Server will start at port: " + port);
+        System.out.println("--------\r\n");
         ChannelFuture future = bootstrap.bind(port).sync();
         future.channel().closeFuture().sync();
     }
 
-    private class WebsocketEventImp extends WebsocketEvent {
+    private class LocalServerWebsocketEventImp extends WebsocketEvent {
 
         @Override
         public void onConnect(ChannelHandlerContext ctx) {
@@ -83,7 +76,6 @@ public class WSServer {
 
         @Override
         public void onTextMessage(ChannelHandlerContext ctx, String text) {
-            System.out.println(text);
             Command command = Command.ParseCommand(text);
             if (command != null) {
 
@@ -132,7 +124,7 @@ public class WSServer {
                 ctx.channel().close();
                 return;
             }
-
+            System.out.println("open://");
             ctx.channel().writeAndFlush(new TextWebSocketFrame("open://" + sn));
 
             Protocol protocol = new Protocol();

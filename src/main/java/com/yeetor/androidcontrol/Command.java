@@ -1,11 +1,9 @@
-package com.yeetor.p2p;
+package com.yeetor.androidcontrol;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 
 import java.security.InvalidParameterException;
-import java.util.Objects;
 
 /**
  * Created by harry on 2017/4/26.

@@ -1,9 +1,7 @@
-package com.yeetor.p2p;
+package com.yeetor.androidcontrol;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.android.ddmlib.IDevice;
-import com.yeetor.adb.AdbServer;
-import com.yeetor.minicap.Size;
 
 /**
  * Created by harry on 2017/4/21.

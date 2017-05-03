@@ -1,4 +1,4 @@
-package com.yeetor.p2p;
+package com.yeetor.androidcontrol;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;

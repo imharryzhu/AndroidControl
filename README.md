@@ -18,7 +18,7 @@
 * 文字输入 (需要修改，目前使用adb命令，速度太慢了)
 
 
-![demo](demo.gif)
+![demo](docs/demo.gif)
 
 ### 使用方法
 

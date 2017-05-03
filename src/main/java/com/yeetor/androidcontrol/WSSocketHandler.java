@@ -1,6 +1,5 @@
-package com.yeetor.p2p;
+package com.yeetor.androidcontrol;
 
-import com.yeetor.minicap.BinaryOutputReceiver;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -10,8 +9,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.CharsetUtil;
-
-import java.util.Date;
 
 /**
  * Created by harry on 2017/4/18.

@@ -1,19 +1,15 @@
-package com.yeetor.p2p;
+package com.yeetor.androidcontrol;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
 import com.yeetor.minitouch.Minitouch;
 import com.yeetor.minitouch.MinitouchListener;
-import com.yeetor.p2p.Protocol;
-import com.yeetor.p2p.WSServer;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import javafx.scene.image.Image;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -34,6 +30,9 @@ public class LocalClient implements MinicapListener, MinitouchListener {
 
 
     public void executeCommand(ChannelHandlerContext ctx, Command command) {
+        if (command.getSchem() != Command.Schem.WATTING) {
+            System.out.println(command.getContent());
+        }
         switch (command.getSchem()) {
             case START:
                 startCommand(ctx, command);
@@ -150,7 +149,7 @@ public class LocalClient implements MinicapListener, MinitouchListener {
         }
     }
 
-    private static class ImageData {
+    public static class ImageData {
         ImageData(byte[] d) {
             timesp = System.currentTimeMillis();
             data = d;
@@ -175,7 +174,6 @@ public class LocalClient implements MinicapListener, MinitouchListener {
     }
 
     private void keyeventCommand(Command command) {
-        System.out.println(command.getContent());
         int k = Integer.parseInt(command.getContent());
         protocol.getMinitouch().sendKeyEvent(k);
     }

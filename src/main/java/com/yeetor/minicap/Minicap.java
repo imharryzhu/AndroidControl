@@ -5,15 +5,9 @@ import com.yeetor.adb.AdbForward;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.util.Constant;
 import com.yeetor.util.Util;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.apache.commons.lang3.StringUtils;
 import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
-import javax.imageio.ImageIO;
-import javax.imageio.stream.FileImageOutputStream;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Socket;
 import java.util.*;
@@ -27,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Minicap {
 
-    private static final String MINICAP_BIN = "minicap";
+    private static final String MINICAP_BIN = "resources/minicap";
     private static final String MINICAP_SO = "minicap.so";
     private static final String REMOTE_PATH = "/data/local/tmp";
 
@@ -170,7 +164,7 @@ public class Minicap {
      * @return
      */
     public byte[] takeScreenShot() {
-        String command = getMinicapCommand(deviceSize.w, deviceSize.h, 1080, 1920, 0, false, "minicap", new String[] {"-s -b"});
+        String command = getMinicapCommand(deviceSize.w, deviceSize.h, 1080, 1920, 0, false, "resources/minicap", new String[] {"-s -b"});
         BinaryOutputReceiver receiver = new BinaryOutputReceiver();
         try {
             device.executeShellCommand(command, receiver, 0);
@@ -181,7 +175,6 @@ public class Minicap {
         byte[] bytes = receiver.getOutput();
         do {
             String dataStr = new String(bytes);
-            System.out.println(dataStr);
             int jpgStart = dataStr.indexOf("/9j/");
 
             if (jpgStart >= 0) {

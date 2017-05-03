@@ -4,18 +4,15 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.yeetor.adb.AdbForward;
 import com.yeetor.adb.AdbServer;
-import com.yeetor.minicap.MinicapListener;
 import com.yeetor.util.Constant;
 import com.yeetor.util.Util;
 
-import javax.naming.ldap.SortKey;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -25,7 +22,7 @@ public class Minitouch {
 
     private static final String MINITOUCH_BIN_DIR = "resources" + File.separator + "minicap-bin";
     private static final String REMOTE_PATH = "/data/local/tmp";
-    private static final String MINITOUCH_BIN = "minitouch";
+    private static final String MINITOUCH_BIN = "resources/minitouch";
 
     private List<MinitouchListener> listenerList = new ArrayList<MinitouchListener>();
 

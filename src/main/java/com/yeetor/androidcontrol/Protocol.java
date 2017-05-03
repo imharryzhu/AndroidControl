@@ -1,4 +1,4 @@
-package com.yeetor.p2p;
+package com.yeetor.androidcontrol;
 
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minitouch.Minitouch;
