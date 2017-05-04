@@ -30,7 +30,7 @@ public class LocalClient implements MinicapListener, MinitouchListener {
 
 
     public void executeCommand(ChannelHandlerContext ctx, Command command) {
-        if (command.getSchem() != Command.Schem.WATTING) {
+        if (command.getSchem() != Command.Schem.WAITTING) {
             System.out.println(command.getContent());
         }
         switch (command.getSchem()) {
@@ -39,7 +39,7 @@ public class LocalClient implements MinicapListener, MinitouchListener {
                 break;
             case TOUCH:
                 touchCommand(ctx, command);
-            case WATTING:
+            case WAITTING:
                 waittingCommand(ctx, command);
                 break;
             case KEYEVENT:
@@ -202,7 +202,7 @@ public class LocalClient implements MinicapListener, MinitouchListener {
         if (scale < 0.01) {scale = 0.01f;}
         if (scale > 1.0) {scale = 1.0f;}
         if (rotate == null) { rotate = 0.0f; }
-        Minicap minicap = new Minicap(protocol.getKey());
+        Minicap minicap = new Minicap(protocol.getSn());
         minicap.addEventListener(this);
         minicap.start(scale, rotate.intValue());
         protocol.setMinicap(minicap);
@@ -213,7 +213,7 @@ public class LocalClient implements MinicapListener, MinitouchListener {
             protocol.getMinitouch().kill();
         }
 
-        Minitouch minitouch = new Minitouch(protocol.getKey());
+        Minitouch minitouch = new Minitouch(protocol.getSn());
         minitouch.addEventListener(this);
         minitouch.start();
         protocol.setMinitouch(minitouch);

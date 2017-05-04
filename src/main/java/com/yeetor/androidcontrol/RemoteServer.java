@@ -4,13 +4,19 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.android.ddmlib.IDevice;
 import com.yeetor.adb.AdbServer;
-import com.yeetor.minicap.*;
+import com.yeetor.minicap.Minicap;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.*;
-import io.netty.channel.*;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.apache.commons.lang3.StringUtils;
@@ -20,14 +26,13 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by harry on 2017/4/18.
+ * Created by harry on 2017/5/4.
  */
-public class LocalServer {
-
+public class RemoteServer {
     private int port = -1;
     List<Protocol> protocolList;
 
-    public LocalServer(int port) {
+    public RemoteServer(int port) {
         listen(port);
         protocolList = new LinkedList<Protocol>();
     }
@@ -44,15 +49,14 @@ public class LocalServer {
         bootstrap.group(bossGroup, workerGroup).
                 channel(NioServerSocketChannel.class).
                 childOption(ChannelOption.SO_KEEPALIVE, true).
-                childHandler(new ChildChannel(new LocalServerWebsocketEventImp()));
-        System.out.println("LocalServer will start at port: " + port);
+                childHandler(new ChildChannel(new RemoteServerWebsocketEventImp()));
+        System.out.println("RemoteServer will start at port: " + port);
         System.out.println("--------\r\n");
         ChannelFuture future = bootstrap.bind(port).sync();
         future.channel().closeFuture().sync();
     }
 
-    private class LocalServerWebsocketEventImp extends WebsocketEvent {
-
+    private class RemoteServerWebsocketEventImp extends WebsocketEvent {
         @Override
         public void onConnect(ChannelHandlerContext ctx) {
         }
@@ -78,25 +82,26 @@ public class LocalServer {
 
         @Override
         public void onTextMessage(ChannelHandlerContext ctx, String text) {
-            Command command = Command.ParseCommand(text);
             System.out.println(text);
+            Command command = Command.ParseCommand(text);
             if (command != null) {
                 switch (command.getSchem()) {
                     case WAIT:
-                        initLocalClient(ctx, command);
+                        waitRemoteClient(ctx, command);
+                        break;
+                    case OPEN:
+                        remoteClientOpen(ctx, command);
                         break;
                     case START:
                     case WAITTING:
                     case TOUCH:
                     case KEYEVENT:
                     case INPUT:
-                        executeCommand(ctx, command);
-                        break;
                     case SHOT:
-                        sendShot(ctx, command);
-                        break;
                     case DEVICES:
-                        sendDevicesJson(ctx);
+                    case MINICAP:
+                    case MINITOUCH:
+                        forwardCommand(ctx, command);
                         break;
                 }
             } else {
@@ -106,6 +111,12 @@ public class LocalServer {
 
         @Override
         public void onBinaryMessage(ChannelHandlerContext ctx, byte[] data) {
+            // 二进制直接转发
+            Protocol protocol = findProtocolByClient(ctx);
+            if (protocol == null || protocol.getBroswerSocket() == null) {
+                return;
+            }
+            protocol.getBroswerSocket().channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.copiedBuffer(data)));
         }
 
         @Override
@@ -119,82 +130,69 @@ public class LocalServer {
             }
         }
 
-        void initLocalClient(final ChannelHandlerContext ctx, Command command) {
-
+        void waitRemoteClient(final ChannelHandlerContext ctx, Command command) {
             String sn = command.getString("sn", null);
-            String key = command.getString("key", null);
-
-            // 没有sn，默认第一个设备
-            if (StringUtils.isEmpty(sn)) {
-                IDevice iDevice = AdbServer.server().getFirstDevice();
-                if (iDevice == null) {
-                    ctx.channel().close();
-                    return;
-                }
-                sn = iDevice.getSerialNumber();
+            if (sn == null) {
+                ctx.channel().close();
+                return;
             }
 
-            JSONObject obj = new JSONObject();
-            obj.put("sn", sn);
-            obj.put("key", key);
-
-            ctx.channel().writeAndFlush(new TextWebSocketFrame("open://" + obj.toJSONString()));
+            String key = command.getString("key", null);
 
             Protocol protocol = new Protocol();
             protocol.setSn(sn);
             protocol.setKey(key);
             protocol.setBroswerSocket(ctx);
             protocolList.add(protocol);
-
-            LocalClient localClient = new LocalClient(protocol);
-            protocol.setLocalClient(localClient);
         }
 
-        void executeCommand(ChannelHandlerContext ctx, Command command) {
-            Protocol protocol = null;
-            // 寻找与之匹配的protocol
-            for (Protocol p : protocolList) {
-                if (p.getBroswerSocket() != null && p.getBroswerSocket() == ctx) {
-                    protocol = p;
-                    break;
-                }
-                if (p.getClientSocket() != null && p.getClientSocket() == ctx) {
-                    protocol = p;
-                    break;
-                }
-            }
-            if (protocol != null) {
-                protocol.getLocalClient().executeCommand(ctx, command);
-            }
-        }
-
-        void sendDevicesJson(ChannelHandlerContext ctx) {
-            IDevice[] devices = AdbServer.server().getDevices();
-            ArrayList<DeviceInfo> list = new ArrayList<DeviceInfo>();
-            for (IDevice device : devices) {
-                list.add(new DeviceInfo(device)); // TODO 耗时长，需优化
-            }
-            String json = JSON.toJSONString(list);
-            ctx.channel().writeAndFlush(new TextWebSocketFrame(json));
-        }
-
-        void sendShot(ChannelHandlerContext ctx, Command command) {
+        void remoteClientOpen(final ChannelHandlerContext ctx, Command command) {
             String sn = command.getString("sn", null);
-            Minicap cap = new Minicap(sn);
-            ctx.channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.copiedBuffer(cap.takeScreenShot())));
+            if (sn == null) {
+                ctx.channel().close();
+                return;
+            }
+            String key = command.getString("key", null);
+
+            Protocol protocol = findProtocolByKey(key);
+            if (protocol == null) {
+                System.out.println("can not find key:" + key + " sn:" + sn);
+                ctx.channel().close();
+                return;
+            }
+
+            protocol.setClientSocket(ctx);
+
+            JSONObject obj = new JSONObject();
+            obj.put("sn", sn);
+            obj.put("key", key);
+
+            // 通知浏览器
+            protocol.getBroswerSocket().channel().writeAndFlush(new TextWebSocketFrame("open://" + obj.toJSONString()));
+        }
+
+        void forwardCommand(ChannelHandlerContext ctx, Command command) {
+            Protocol protocol = findProtocolByBrowser(ctx);
+            if (protocol == null) {
+                protocol = findProtocolByClient(ctx);
+                if (protocol == null) {
+                    return;
+                }
+            }
+
+            ChannelHandlerContext sendTo = null;
+
+            if (ctx == protocol.getBroswerSocket()) {
+                System.out.println("转发:" + command.getCommandString());
+                sendTo = protocol.getClientSocket();
+            } else {
+                sendTo = protocol.getBroswerSocket();
+            }
+
+            sendTo.channel().writeAndFlush(new TextWebSocketFrame(command.getCommandString()));
         }
 
         DefaultFullHttpResponse onHttpGet(String uri) {
-
-            if (uri.startsWith("/shot")) {
-                // 获取serialNumber
-                String[] s = uri.split("/");
-                if (s.length == 3) {
-                    return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.copiedBuffer(new Minicap(s[2]).takeScreenShot()));
-                } else {
-                    return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
-                }
-            }
             return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
         }
     }
@@ -202,6 +200,15 @@ public class LocalServer {
     private Protocol findProtocolByBrowser(ChannelHandlerContext ctx) {
         for (Protocol protocol : protocolList) {
             if (protocol.getBroswerSocket() != null && protocol.getBroswerSocket() == ctx) {
+                return protocol;
+            }
+        }
+        return null;
+    }
+
+    private Protocol findProtocolByKey(String key) {
+        for (Protocol protocol : protocolList) {
+            if (protocol.getBroswerSocket() != null && StringUtils.equals(key, protocol.getKey())) {
                 return protocol;
             }
         }
@@ -216,5 +223,4 @@ public class LocalServer {
         }
         return null;
     }
-
 }

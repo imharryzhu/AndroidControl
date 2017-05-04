@@ -14,12 +14,14 @@ public class Command {
         WAIT("wait"),
         OPEN("open"),
         START("start"),
-        WATTING("watting"),
+        WAITTING("waitting"),
         TOUCH("touch"),
         DEVICES("devices"),
         KEYEVENT("keyevent"),
         INPUT("input"),
-        SHOT("shot");
+        SHOT("shot"),
+        MINICAP("minicap"),
+        MINITOUCH("minitouch");
 
         private String schemStr;
 
@@ -43,7 +45,6 @@ public class Command {
         }
 
         String schemStr = command.substring(0, splitIndex);
-
         switch (schemStr) {
             case "wait":
                 schem = Schem.WAIT;
@@ -55,7 +56,7 @@ public class Command {
                 schem = Schem.START;
                 break;
             case "waitting":
-                schem = Schem.WATTING;
+                schem = Schem.WAITTING;
                 break;
             case "touch":
                 schem = Schem.TOUCH;
@@ -72,6 +73,12 @@ public class Command {
             case "input":
                 schem = Schem.INPUT;
                 break;
+            case "minicap":
+                schem = Schem.MINICAP;
+                break;
+            case "minitouch":
+                schem = Schem.MINITOUCH;
+                break;
             default:
                 throw new InvalidParameterException(command + " 未知的schem");
         }
@@ -79,7 +86,7 @@ public class Command {
         String contentStr = command.substring(splitIndex + 3);
 
         // minitouch keyevent，此消息不是json格式。其他都为json键值对
-        if (!schem.equals(Schem.TOUCH) && !schem.equals(Schem.KEYEVENT) && !schem.equals(Schem.INPUT)) {
+        if (!schem.equals(Schem.TOUCH) && !schem.equals(Schem.KEYEVENT) && !schem.equals(Schem.INPUT) && !schem.equals(Schem.MINICAP) && !schem.equals(Schem.MINITOUCH)) {
             try {
                 this.content = parseContentJson(contentStr);
             } catch (JSONException e) {
@@ -104,6 +111,10 @@ public class Command {
 
     public Schem getSchem() {
         return schem;
+    }
+
+    public String getCommandString() {
+        return schem.getSchemString() + "://" + getContent();
     }
 
     public String getContent() {

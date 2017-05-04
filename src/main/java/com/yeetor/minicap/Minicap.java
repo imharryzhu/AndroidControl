@@ -52,9 +52,15 @@ public class Minicap {
             throw new MinicapInstallException("device can't be null");
         }
 
-        String sdk = device.getProperty(Constant.PROP_SDK).trim();
-        String abi = device.getProperty(Constant.PROP_ABI).trim();
+        String sdk = device.getProperty(Constant.PROP_SDK);
+        String abi = device.getProperty(Constant.PROP_ABI);
 
+        if (StringUtils.isEmpty(sdk) || StringUtils.isEmpty(abi)) {
+            throw new MinicapInstallException("cant not get device info. please check device is connected");
+        }
+
+        sdk = sdk.trim();
+        abi = abi.trim();
         // minicap
         File minicap_bin = Constant.getMinicap(abi);
         if (!minicap_bin.exists()) {

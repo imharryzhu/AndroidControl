@@ -1,6 +1,7 @@
 package com.yeetor.androidcontrol;
 
 import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.IDevice;
 import com.neovisionaries.ws.client.*;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.minicap.Banner;
@@ -26,18 +27,23 @@ public class RemoteClient extends WebSocketAdapter implements MinicapListener, M
 
     private String ip;
     private int port;
+    private String key;
     private String serialNumber;
     private WebSocket ws;
 
     Minicap minicap = null;
     Minitouch minitouch = null;
 
-    public RemoteClient(String ip, int port, String serialNumber) throws IOException, WebSocketException {
+    public RemoteClient(String ip, int port, String key, String serialNumber) throws IOException, WebSocketException {
         this.ip = ip;
         this.port = port;
-
+        this.key = key;
+        this.serialNumber = serialNumber;
         if (serialNumber == null || serialNumber.isEmpty()) {
-            this.serialNumber = AdbServer.server().getFirstDevice().getSerialNumber();
+            IDevice device = AdbServer.server().getFirstDevice();
+            if (device == null)
+                throw new RuntimeException("未找到设备！");
+            this.serialNumber = device.getSerialNumber();
         }
 
         ws = new WebSocketFactory().createSocket("ws://" + ip + ":" + port);
@@ -48,27 +54,24 @@ public class RemoteClient extends WebSocketAdapter implements MinicapListener, M
     @Override
     public void onConnected(WebSocket websocket, Map<String, List<String>> headers) throws Exception {
         System.out.println("Connect to server " + ip + ":" + port);
-        websocket.sendText("open://" + serialNumber);
+        JSONObject obj = new JSONObject();
+        obj.put("sn", serialNumber);
+        obj.put("key", key);
+        websocket.sendText("open://" + obj.toJSONString());
     }
 
     @Override
     public void onTextMessage(WebSocket websocket, String text) throws Exception {
+        System.out.println(text);
         Command command = Command.ParseCommand(text);
         if (command != null) {
-
             switch (command.getSchem()) {
                 case START:
-                case WATTING:
+                case WAITTING:
                 case TOUCH:
                 case KEYEVENT:
                 case INPUT:
                     executeCommand(command);
-                    break;
-                case SHOT:
-//                    sendShot(ctx, command);
-                    break;
-                case DEVICES:
-//                    sendDevicesJson(ctx);
                     break;
             }
         }
@@ -77,6 +80,7 @@ public class RemoteClient extends WebSocketAdapter implements MinicapListener, M
     @Override
     public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) throws Exception {
         System.out.println("Server disconnected");
+        System.exit(0);
     }
 
     @Override
@@ -181,7 +185,7 @@ public class RemoteClient extends WebSocketAdapter implements MinicapListener, M
                 break;
             case TOUCH:
                 touchCommand(command);
-            case WATTING:
+            case WAITTING:
                 waittingCommand(command);
                 break;
             case KEYEVENT:
@@ -196,9 +200,9 @@ public class RemoteClient extends WebSocketAdapter implements MinicapListener, M
     private void startCommand(Command command) {
         String str = command.getString("type", null);
         if (str != null) {
-            if (str.equals("resources/minicap")) {
+            if (str.equals("minicap")) {
                 startMinicap(command);
-            } else if (str.equals("resources/minitouch")) {
+            } else if (str.equals("minitouch")) {
                 startMinitouch(command);
             }
         }
@@ -209,7 +213,6 @@ public class RemoteClient extends WebSocketAdapter implements MinicapListener, M
     }
 
     private void keyeventCommand(Command command) {
-        System.out.println(command.getContent());
         int k = Integer.parseInt(command.getContent());
         if (minitouch != null) minitouch.sendKeyEvent(k);
     }

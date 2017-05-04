@@ -12,6 +12,7 @@ public class Protocol {
     public ChannelHandlerContext broswerSocket;
     public ChannelHandlerContext clientSocket;
     public String key;
+    public String sn;
     public Minicap minicap;
     public Minitouch minitouch;
     public LocalClient localClient;
@@ -34,6 +35,10 @@ public class Protocol {
 
     public void setClientSocket(ChannelHandlerContext clientSocket) {
         this.clientSocket = clientSocket;
+    }
+
+    public void setSn(String sn) {
+        this.sn = sn;
     }
 
     public void setKey(String key) {
@@ -62,6 +67,11 @@ public class Protocol {
 
     public String getKey() {
         return key;
+    }
+
+
+    public String getSn() {
+        return sn;
     }
 
     public Minicap getMinicap() {

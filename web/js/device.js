@@ -39,10 +39,9 @@ function getUrlParams(name) {
 }
 
 function connectServer() {
-    var key = util.key;
     webSocket = new WebSocket("ws://" + server.getServerIp() + ":" + server.getServerPort());
     webSocket.onopen = function () {
-        webSocket.send("wait://" + JSON.stringify({sn:getUrlParams("sn")}));
+        webSocket.send("wait://" + JSON.stringify({sn:util.sn, key:util.key}));
     };
     webSocket.onclose = function () {
         util.serverConnected = false;
@@ -80,10 +79,11 @@ function connectServer() {
 
 window.onload = function() {
     // 获取请求参数
-    util.key = getUrlParams("sn");
+    util.sn = getUrlParams("sn");
+    util.key = getUrlParams("key");
 
-    util.ip = "127.0.0.1";
-    util.port = 6655;
+    util.ip = getUrlParams("ip") || "127.0.0.1";
+    util.port = getUrlParams("port") || "6655";
 
     $("#minicapScaleText").val(util.getMinicapScale());
 

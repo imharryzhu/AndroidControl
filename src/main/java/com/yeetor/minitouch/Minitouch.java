@@ -4,8 +4,10 @@ import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.yeetor.adb.AdbForward;
 import com.yeetor.adb.AdbServer;
+import com.yeetor.minicap.MinicapInstallException;
 import com.yeetor.util.Constant;
 import com.yeetor.util.Util;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,8 +39,15 @@ public class Minitouch {
             throw new MinitouchInstallException("device can't be null");
         }
 
-        String sdk = device.getProperty(Constant.PROP_SDK).trim();
-        String abi = device.getProperty(Constant.PROP_ABI).trim();
+        String sdk = device.getProperty(Constant.PROP_SDK);
+        String abi = device.getProperty(Constant.PROP_ABI);
+
+        if (StringUtils.isEmpty(sdk) || StringUtils.isEmpty(abi)) {
+            throw new MinitouchInstallException("cant not get device info. please check device is connected");
+        }
+
+        sdk = sdk.trim();
+        abi = abi.trim();
 
         File minitouch_bin = Constant.getMinitouchBin(abi);
         if (!minitouch_bin.exists()) {

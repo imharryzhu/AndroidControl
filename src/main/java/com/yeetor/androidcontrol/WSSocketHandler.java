@@ -63,9 +63,13 @@ public class WSSocketHandler extends SimpleChannelInboundHandler<Object> {
             if (event != null) {
                 event.onTextMessage(ctx, ((TextWebSocketFrame) frame).text());
             }
-        } else if (frame instanceof  BinaryWebSocketFrame) {
+        } else if (frame instanceof BinaryWebSocketFrame) {
             if (event != null) {
-                event.onBinaryMessage(ctx, ((BinaryWebSocketFrame) frame).content().array());
+
+                ByteBuf byteBuf = ((BinaryWebSocketFrame) frame).content();
+                byte[] bytes = new byte[byteBuf.readableBytes()];
+                byteBuf.getBytes(0, bytes);
+                event.onBinaryMessage(ctx, bytes);
             }
         }
 
@@ -94,7 +98,7 @@ public class WSSocketHandler extends SimpleChannelInboundHandler<Object> {
             return;
         }
         WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
-                null, null, false);
+                null, null, false, Integer.MAX_VALUE);
         handshaker = wsFactory.newHandshaker(req);
         if (handshaker == null) {
             WebSocketServerHandshakerFactory.sendUnsupportedWebSocketVersionResponse(ctx.channel());
