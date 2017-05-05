@@ -41,7 +41,8 @@ public class AdbServer {
             if(adbPath != null){
                 adbPath += File.separator + adbPlatformTools;
             }else {
-                return null;
+                adbPath = "adb";
+                return adbPath;
             }
         }
         adbPath += File.separator + "adb";

@@ -79,7 +79,6 @@ public class LocalServer {
         @Override
         public void onTextMessage(ChannelHandlerContext ctx, String text) {
             Command command = Command.ParseCommand(text);
-            System.out.println(text);
             if (command != null) {
                 switch (command.getSchem()) {
                     case WAIT:

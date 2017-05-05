@@ -22,8 +22,11 @@
 
 ### 使用方法
 
-1. 使用Intellij Idea打开项目并运行
-2. 打开`web/index.html`
+1.  使用Gradle构建项目： `gradle jar`
+2.  进入到生成的目录：`cd build/libs`
+3.  运行服务器（这里使用本地服务器）：`java -jar AndroidControl.jar localserver 6655`
+4.  打开`web/index.html`
+5.  点击网页中的`设置`，配置IP和端口：`127.0.0.1` `6655`
 
 注意：
 
