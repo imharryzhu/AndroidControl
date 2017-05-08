@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Minicap {
 
-    private static final String MINICAP_BIN = "resources/minicap";
+    private static final String MINICAP_BIN = "minicap";
     private static final String MINICAP_SO = "minicap.so";
     private static final String REMOTE_PATH = "/data/local/tmp";
 
@@ -182,7 +182,7 @@ public class Minicap {
      * @return
      */
     public byte[] takeScreenShot() {
-        String command = getMinicapCommand(deviceSize.w, deviceSize.h, 1080, 1920, 0, false, "resources/minicap", new String[] {"-s -b"});
+        String command = getMinicapCommand(deviceSize.w, deviceSize.h, 1080, 1920, 0, false, "minicap", new String[] {"-s -b"});
         BinaryOutputReceiver receiver = new BinaryOutputReceiver();
         try {
             device.executeShellCommand(command, receiver, 0);

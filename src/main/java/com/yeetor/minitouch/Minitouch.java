@@ -24,7 +24,7 @@ public class Minitouch {
 
     private static final String MINITOUCH_BIN_DIR = "resources" + File.separator + "minicap-bin";
     private static final String REMOTE_PATH = "/data/local/tmp";
-    private static final String MINITOUCH_BIN = "resources/minitouch";
+    private static final String MINITOUCH_BIN = "minitouch";
 
     private List<MinitouchListener> listenerList = new ArrayList<MinitouchListener>();
 
