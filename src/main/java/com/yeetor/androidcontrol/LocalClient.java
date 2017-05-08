@@ -30,9 +30,6 @@ public class LocalClient implements MinicapListener, MinitouchListener {
 
 
     public void executeCommand(ChannelHandlerContext ctx, Command command) {
-        if (command.getSchem() != Command.Schem.WAITTING && command.getSchem() != Command.Schem.TOUCH) {
-            System.out.println(command.getContent());
-        }
         switch (command.getSchem()) {
             case START:
                 startCommand(ctx, command);

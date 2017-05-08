@@ -162,6 +162,18 @@ public class Minicap {
         return forward;
     }
 
+    private void removeForward(AdbForward forward) {
+        if (forward == null || !forward.isForward()) {
+            return;
+        }
+        try {
+            device.removeForward(forward.getPort(), forward.getLocalabstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("remove forward failed");
+        }
+    }
+
     /**
      * 屏幕截图
      *
@@ -400,6 +412,7 @@ public class Minicap {
     private void onClose() {
         for (MinicapListener listener : listenerList) {
             listener.onClose(this);
+            removeForward(forward);
         }
     }
 
@@ -427,6 +440,7 @@ public class Minicap {
                 this.inputStream = minicapSocket.getInputStream();
             } catch (IOException e) {
                 e.printStackTrace();
+                onClose();
             }
         }
 
@@ -435,7 +449,8 @@ public class Minicap {
             try {
                 readData();
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("lost connection: " + e.getMessage());
+                onClose();
             }
         }
 
@@ -473,7 +488,8 @@ public class Minicap {
                     banner = new Banner();
                     readData();
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    System.out.println(e.getMessage());
+                    onClose();
                 }
             }
         }

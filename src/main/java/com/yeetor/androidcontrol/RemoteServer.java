@@ -82,7 +82,6 @@ public class RemoteServer {
 
         @Override
         public void onTextMessage(ChannelHandlerContext ctx, String text) {
-            System.out.println(text);
             Command command = Command.ParseCommand(text);
             if (command != null) {
                 switch (command.getSchem()) {
@@ -183,7 +182,6 @@ public class RemoteServer {
             ChannelHandlerContext sendTo = null;
 
             if (ctx == protocol.getBroswerSocket()) {
-                System.out.println("转发:" + command.getCommandString());
                 sendTo = protocol.getClientSocket();
             } else {
                 sendTo = protocol.getBroswerSocket();

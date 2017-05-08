@@ -62,7 +62,6 @@ public class RemoteClient extends WebSocketAdapter implements MinicapListener, M
 
     @Override
     public void onTextMessage(WebSocket websocket, String text) throws Exception {
-        System.out.println(text);
         Command command = Command.ParseCommand(text);
         if (command != null) {
             switch (command.getSchem()) {
