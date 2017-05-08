@@ -97,6 +97,16 @@ public class Minitouch {
         return forward;
     }
 
+    private void removeForward(AdbForward forward) {
+        if (forward == null || !forward.isForward()) {
+            return;
+        }
+        try {
+            device.removeForward(forward.getPort(), forward.getLocalabstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+        } catch (Exception e) {
+        }
+    }
+
     public void start() {
         AdbForward forward = createForward();
         String command = "/data/local/tmp/minitouch" + " -n " + forward.getLocalabstract();
@@ -247,5 +257,6 @@ public class Minitouch {
         for (MinitouchListener listener : listenerList) {
             listener.onClose(this);
         }
+        removeForward(forward);
     }
 }

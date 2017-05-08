@@ -170,7 +170,6 @@ public class Minicap {
             device.removeForward(forward.getPort(), forward.getLocalabstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("remove forward failed");
         }
     }
 
@@ -412,8 +411,8 @@ public class Minicap {
     private void onClose() {
         for (MinicapListener listener : listenerList) {
             listener.onClose(this);
-            removeForward(forward);
         }
+        removeForward(forward);
     }
 
     private void onBanner(Banner banner) {
