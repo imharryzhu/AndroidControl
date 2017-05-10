@@ -18,6 +18,8 @@ shot://{sn:"SerialNumber"}
 minicap://open|close
 minitouch://open|close
 keyevent://key
+push://{name:"filename", path:"devicepath"}
+message://...  // 你想发送的消息
 
 以下的暂未确定
 device://

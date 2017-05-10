@@ -13,7 +13,12 @@ public class Constant {
     public static final String PROP_SDK = "ro.build.version.sdk";
 
     public static File getResourceDir() {
-        File resources = new File(new File(System.getProperty("java.class.path")).getParent(), "resources");
+        String path = System.getProperty("java.class.path");
+        if (path.indexOf(";") > 0) {
+            path = path.substring(0, path.indexOf(";"));
+        }
+        File resources = new File(new File(path).getParent(), "resources");
+
         return resources;
     }
 

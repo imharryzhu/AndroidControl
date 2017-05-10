@@ -1,5 +1,7 @@
 package com.yeetor.androidcontrol;
 
+import com.neovisionaries.ws.client.WebSocket;
+import com.neovisionaries.ws.client.WebSocketFactory;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -9,6 +11,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.*;
 import io.netty.util.CharsetUtil;
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Created by harry on 2017/4/18.
@@ -17,6 +20,7 @@ public class WSSocketHandler extends SimpleChannelInboundHandler<Object> {
 
     WebSocketServerHandshaker handshaker;
     WebsocketEvent event;
+    byte binaryCache[] = new byte[0];
 
     public WSSocketHandler(WebsocketEvent event) {
         this.event = event;
@@ -63,24 +67,19 @@ public class WSSocketHandler extends SimpleChannelInboundHandler<Object> {
             if (event != null) {
                 event.onTextMessage(ctx, ((TextWebSocketFrame) frame).text());
             }
-        } else if (frame instanceof BinaryWebSocketFrame) {
+        } else if (frame instanceof BinaryWebSocketFrame || frame instanceof ContinuationWebSocketFrame) {
             if (event != null) {
-
-                ByteBuf byteBuf = ((BinaryWebSocketFrame) frame).content();
+                ByteBuf byteBuf = frame.content();
                 byte[] bytes = new byte[byteBuf.readableBytes()];
                 byteBuf.getBytes(0, bytes);
-                event.onBinaryMessage(ctx, bytes);
+                binaryCache = ArrayUtils.addAll(binaryCache, bytes);
+                if (frame.isFinalFragment()) {
+                    byte[] b = binaryCache;
+                    binaryCache = new byte[0];
+                    event.onBinaryMessage(ctx, b);
+                }
             }
         }
-
-
-
-        // 返回应答消息
-//        String request = ((TextWebSocketFrame) frame).text();
-//        System.out.println("服务端收到：" + request);
-//        TextWebSocketFrame tws = new TextWebSocketFrame(new Date().toString()
-//                + ctx.channel().id() + "：" + request);
-//        ctx.channel().writeAndFlush(tws);
     }
 
     private void handleHttpRequest(ChannelHandlerContext ctx, FullHttpRequest req) {
@@ -98,7 +97,7 @@ public class WSSocketHandler extends SimpleChannelInboundHandler<Object> {
             return;
         }
         WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
-                null, null, false, Integer.MAX_VALUE);
+                null, null, true, Integer.MAX_VALUE, true);
         handshaker = wsFactory.newHandshaker(req);
         if (handshaker == null) {
             WebSocketServerHandshakerFactory.sendUnsupportedWebSocketVersionResponse(ctx.channel());

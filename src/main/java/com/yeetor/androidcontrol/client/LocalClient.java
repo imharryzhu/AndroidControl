@@ -1,6 +1,13 @@
-package com.yeetor.androidcontrol;
+package com.yeetor.androidcontrol.client;
 
 import com.alibaba.fastjson.JSONObject;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.SyncException;
+import com.android.ddmlib.TimeoutException;
+import com.yeetor.adb.AdbServer;
+import com.yeetor.androidcontrol.Command;
+import com.yeetor.androidcontrol.Protocol;
 import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
@@ -11,13 +18,15 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by harry on 2017/4/19.
  */
-public class LocalClient implements MinicapListener, MinitouchListener {
+public class LocalClient extends BaseClient implements MinicapListener, MinitouchListener {
     static final int DATA_TIMEOUT = 100; //ms
     private boolean isWaitting = false;
     private BlockingQueue<ImageData> dataQueue = new LinkedBlockingQueue<ImageData>();
@@ -44,6 +53,9 @@ public class LocalClient implements MinicapListener, MinitouchListener {
                 break;
             case INPUT:
                 inputCommand(command);
+                break;
+            case PUSH:
+                pushCommand(command);
                 break;
         }
     }
@@ -184,6 +196,20 @@ public class LocalClient implements MinicapListener, MinitouchListener {
     private void inputCommand(Command command) {
         String str = (String) command.getContent();
         protocol.getMinitouch().inputText(str);
+    }
+
+    private void pushCommand(Command command) {
+        String name = command.getString("name", null);
+        String path = command.getString("path", null);
+
+        IDevice device = AdbServer.server().getDevice(protocol.getSn());
+        try {
+            device.pushFile(new File(name).getAbsolutePath(), path + "/" + name);
+        } catch (Exception e) {
+        }
+        if (protocol != null) {
+            protocol.getBroswerSocket().channel().writeAndFlush(new TextWebSocketFrame("message://pushfile success"));
+        }
     }
 
     private void startMinicap(Command command) {

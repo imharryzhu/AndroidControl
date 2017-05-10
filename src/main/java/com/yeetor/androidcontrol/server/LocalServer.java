@@ -1,9 +1,12 @@
-package com.yeetor.androidcontrol;
+package com.yeetor.androidcontrol.server;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.android.ddmlib.IDevice;
 import com.yeetor.adb.AdbServer;
+import com.yeetor.androidcontrol.*;
+import com.yeetor.androidcontrol.client.LocalClient;
+import com.yeetor.androidcontrol.message.BinaryMessage;
+import com.yeetor.androidcontrol.message.FileMessage;
 import com.yeetor.minicap.*;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.*;
@@ -15,14 +18,18 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Created by harry on 2017/4/18.
  */
-public class LocalServer {
+public class LocalServer extends BaseServer {
 
     private int port = -1;
     List<Protocol> protocolList;
@@ -89,6 +96,7 @@ public class LocalServer {
                     case TOUCH:
                     case KEYEVENT:
                     case INPUT:
+                    case PUSH:
                         executeCommand(ctx, command);
                         break;
                     case SHOT:
@@ -105,17 +113,39 @@ public class LocalServer {
 
         @Override
         public void onBinaryMessage(ChannelHandlerContext ctx, byte[] data) {
+            int headlen = (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
+            String infoJSON = new String(data, 2, headlen);
+            BinaryMessage message = BinaryMessage.parse(infoJSON);
+
+            if (message.getType().equals("file")) {
+                FileMessage fileMessage = (FileMessage) message;
+                File file = new File(fileMessage.name);
+                if (fileMessage.offset == 0 && file.exists()) {
+                    file.delete();
+                }
+                System.out.println(infoJSON);
+                try {
+                    FileOutputStream os = new FileOutputStream(file, true);
+                    byte[] bs = Arrays.copyOfRange(data, 2 + headlen, data.length);
+                    os.write(bs);
+                    os.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (fileMessage.offset + fileMessage.packagesize == fileMessage.filesize) {
+                    ctx.channel().writeAndFlush(new TextWebSocketFrame("message://upload file success"));
+                }
+            }
         }
 
         @Override
-        DefaultFullHttpResponse onHttpRequest(ChannelHandlerContext ctx, FullHttpRequest req) {
-            // TODO 目前只支持GET请求
-            if (req.method().toString().toUpperCase().equals("GET")) {
-                DefaultFullHttpResponse response = onHttpGet(req.uri());
-                return response;
-            } else {
-                return null;
-            }
+        public DefaultFullHttpResponse onHttpRequest(ChannelHandlerContext ctx, FullHttpRequest req) {
+            DefaultFullHttpResponse response = onHttp(req);
+            response.headers().add("Access-Control-Allow-Origin", "*");
+            response.headers().add("Server", "AnroidControl-LocalServer");
+            return response;
         }
 
         void initLocalClient(final ChannelHandlerContext ctx, Command command) {
@@ -168,13 +198,7 @@ public class LocalServer {
         }
 
         void sendDevicesJson(ChannelHandlerContext ctx) {
-            IDevice[] devices = AdbServer.server().getDevices();
-            ArrayList<DeviceInfo> list = new ArrayList<DeviceInfo>();
-            for (IDevice device : devices) {
-                list.add(new DeviceInfo(device)); // TODO 耗时长，需优化
-            }
-            String json = JSON.toJSONString(list);
-            ctx.channel().writeAndFlush(new TextWebSocketFrame(json));
+            ctx.channel().writeAndFlush(new TextWebSocketFrame(getDevicesJSON()));
         }
 
         void sendShot(ChannelHandlerContext ctx, Command command) {
@@ -183,19 +207,24 @@ public class LocalServer {
             ctx.channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.copiedBuffer(cap.takeScreenShot())));
         }
 
-        DefaultFullHttpResponse onHttpGet(String uri) {
-
-            if (uri.startsWith("/shot")) {
+        DefaultFullHttpResponse onHttp(FullHttpRequest req) {
+            String uri = req.uri();
+            String uriPath = uri.substring(uri.indexOf("/") + 1);
+            System.out.println("http://" + uriPath);
+            if (uriPath.startsWith("shot")) {
                 // 获取serialNumber
                 String[] s = uri.split("/");
-                if (s.length == 3) {
+                if (s.length == 2) {
                     return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.copiedBuffer(new Minicap(s[2]).takeScreenShot()));
                 } else {
                     return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
                 }
+            } else if (uriPath.startsWith("devices")) {
+                return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.copiedBuffer(getDevicesJSON().getBytes()));
             }
             return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
         }
+
     }
 
     private Protocol findProtocolByBrowser(ChannelHandlerContext ctx) {

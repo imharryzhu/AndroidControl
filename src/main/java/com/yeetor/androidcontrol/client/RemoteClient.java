@@ -1,9 +1,10 @@
-package com.yeetor.androidcontrol;
+package com.yeetor.androidcontrol.client;
 
 import com.alibaba.fastjson.JSONObject;
 import com.android.ddmlib.IDevice;
 import com.neovisionaries.ws.client.*;
 import com.yeetor.adb.AdbServer;
+import com.yeetor.androidcontrol.Command;
 import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
@@ -19,7 +20,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Created by harry on 2017/5/3.
  */
-public class RemoteClient extends WebSocketAdapter implements MinicapListener, MinitouchListener {
+public class RemoteClient extends BaseClient implements MinicapListener, MinitouchListener {
 
     static final int DATA_TIMEOUT = 100; //ms
     private boolean isWaitting = false;
@@ -47,39 +48,8 @@ public class RemoteClient extends WebSocketAdapter implements MinicapListener, M
         }
 
         ws = new WebSocketFactory().createSocket("ws://" + ip + ":" + port);
-        ws.addListener(this);
+        ws.addListener(new MyWebsocketEvent());
         ws.connect();
-    }
-
-    @Override
-    public void onConnected(WebSocket websocket, Map<String, List<String>> headers) throws Exception {
-        System.out.println("Connect to server " + ip + ":" + port);
-        JSONObject obj = new JSONObject();
-        obj.put("sn", serialNumber);
-        obj.put("key", key);
-        websocket.sendText("open://" + obj.toJSONString());
-    }
-
-    @Override
-    public void onTextMessage(WebSocket websocket, String text) throws Exception {
-        Command command = Command.ParseCommand(text);
-        if (command != null) {
-            switch (command.getSchem()) {
-                case START:
-                case WAITTING:
-                case TOUCH:
-                case KEYEVENT:
-                case INPUT:
-                    executeCommand(command);
-                    break;
-            }
-        }
-    }
-
-    @Override
-    public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) throws Exception {
-        System.out.println("Server disconnected");
-        System.exit(0);
     }
 
     @Override
@@ -255,4 +225,38 @@ public class RemoteClient extends WebSocketAdapter implements MinicapListener, M
         minitouch.start();
         this.minitouch = minitouch;
     }
+
+    class MyWebsocketEvent extends WebSocketAdapter {
+        @Override
+        public void onConnected(WebSocket websocket, Map<String, List<String>> headers) throws Exception {
+            System.out.println("Connect to server " + ip + ":" + port);
+            JSONObject obj = new JSONObject();
+            obj.put("sn", serialNumber);
+            obj.put("key", key);
+            websocket.sendText("open://" + obj.toJSONString());
+        }
+
+        @Override
+        public void onTextMessage(WebSocket websocket, String text) throws Exception {
+            Command command = Command.ParseCommand(text);
+            if (command != null) {
+                switch (command.getSchem()) {
+                    case START:
+                    case WAITTING:
+                    case TOUCH:
+                    case KEYEVENT:
+                    case INPUT:
+                        executeCommand(command);
+                        break;
+                }
+            }
+        }
+
+        @Override
+        public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) throws Exception {
+            System.out.println("Server disconnected");
+            System.exit(0);
+        }
+    }
+
 }

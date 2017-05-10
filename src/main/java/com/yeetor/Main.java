@@ -1,11 +1,10 @@
 package com.yeetor;
 
 import com.neovisionaries.ws.client.WebSocketException;
-import com.yeetor.androidcontrol.RemoteClient;
-import com.yeetor.androidcontrol.LocalServer;
-import com.yeetor.androidcontrol.RemoteServer;
+import com.yeetor.androidcontrol.client.RemoteClient;
+import com.yeetor.androidcontrol.server.LocalServer;
+import com.yeetor.androidcontrol.server.RemoteServer;
 
-import java.io.IOException;
 import java.security.InvalidParameterException;
 
 

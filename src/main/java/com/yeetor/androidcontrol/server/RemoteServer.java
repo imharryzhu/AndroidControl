@@ -1,10 +1,7 @@
-package com.yeetor.androidcontrol;
+package com.yeetor.androidcontrol.server;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.android.ddmlib.IDevice;
-import com.yeetor.adb.AdbServer;
-import com.yeetor.minicap.Minicap;
+import com.yeetor.androidcontrol.*;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFuture;
@@ -21,14 +18,13 @@ import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * Created by harry on 2017/5/4.
  */
-public class RemoteServer {
+public class RemoteServer extends BaseServer {
     private int port = -1;
     List<Protocol> protocolList;
 
@@ -119,7 +115,7 @@ public class RemoteServer {
         }
 
         @Override
-        DefaultFullHttpResponse onHttpRequest(ChannelHandlerContext ctx, FullHttpRequest req) {
+        public DefaultFullHttpResponse onHttpRequest(ChannelHandlerContext ctx, FullHttpRequest req) {
             // TODO 目前只支持GET请求
             if (req.method().toString().toUpperCase().equals("GET")) {
                 DefaultFullHttpResponse response = onHttpGet(req.uri());

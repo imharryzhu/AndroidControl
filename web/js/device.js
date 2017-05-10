@@ -46,6 +46,7 @@ function connectServer() {
     webSocket.onclose = function () {
         util.serverConnected = false;
     };
+
     webSocket.onmessage = function(msg) {
         var str = msg.data;
         if (typeof(str) === "string") {
@@ -69,6 +70,9 @@ function connectServer() {
                 } else {
                     onMinitouchClose();
                 }
+            } else if(str.startWith("message://")) {
+                var msg = str.substr(str.indexOf(":") + 3);
+                alert(msg);
             }
         } else {
             waitingData();
@@ -212,6 +216,84 @@ function onMinicapRotateChange(rotate) {
     util.setMinicapRotate(inputRotate);
     requestStartMinicap();
 }
+
+$("#fileToUpload").on("change", function () {
+    var file = this.files[0];
+    var total = file.size; // 文件总大小
+    var curLoaded = 0; // 已读取文件字节数
+    var step = 1024 * 1024 ; // 一次读取的最大长度
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        var loaded = e.loaded;
+
+        // 发送
+        console.log(loaded);
+        sendFileData(reader.result, curLoaded, function() {
+            curLoaded += loaded;
+            if (curLoaded < total) {
+                readBlob(curLoaded);
+            } else {
+                curLoaded = total;
+            }
+        });
+    };
+
+    function readBlob(start) {
+        var blob = file.slice(start, start + step);
+        reader.readAsArrayBuffer(blob);
+    }
+
+    function str2ab(str) {
+        var buf = new ArrayBuffer(str.length*2); // 每个字符占用2个字节
+        var bufView = new Uint16Array(buf);
+        for (var i=0, strLen=str.length; i<strLen; i++) {
+            bufView[i] = str.charCodeAt(i);
+        }
+        return buf;
+    }
+
+    function stringToUint(string) {
+        var string = btoa(unescape(encodeURIComponent(string))),
+            charList = string.split(''),
+            uintArray = [];
+        for (var i = 0; i < charList.length; i++) {
+            uintArray.push(charList[i].charCodeAt(0));
+        }
+        return new Uint8Array(uintArray);
+    }
+
+    function sendFileData(data, chunkIndex, cb) {
+        console.log(data.byteLength);
+        var info = {};
+        info.type = "file";
+        info.name = file.name;
+        info.filesize = total;
+        info.packagesize = data.byteLength;
+        info.offset = chunkIndex;
+        var infostr = JSON.stringify(info);
+        var infodata = new TextEncoder("utf-8").encode(infostr)
+        var len = new Uint16Array(1);
+        len[0] = infodata.byteLength;
+        var blob = new Blob([len, infodata, data]);
+        webSocket.send(blob);
+        if (cb) {
+            cb();
+        }
+    }
+
+    readBlob(0);
+});
+$("#uploadtofile").on("click", function() {
+    var path = $("#devicepath").val();
+    if (!path) {
+        path = $("#devicepath").attr("placeholder");
+    }
+
+    var file = $("#fileToUpload").get(0).files[0];
+    var filename = file.name;
+
+    webSocket.send("push://"+JSON.stringify({name:filename, path: path}));
+});
 
 function requestStartMinicap() {
     var rotate = parseInt(util.getMinicapRotate());

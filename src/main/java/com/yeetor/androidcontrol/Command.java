@@ -21,7 +21,9 @@ public class Command {
         INPUT("input"),
         SHOT("shot"),
         MINICAP("minicap"),
-        MINITOUCH("minitouch");
+        MINITOUCH("minitouch"),
+        PUSH("push"),
+        MESSAGE("message");
 
         private String schemStr;
 
@@ -79,14 +81,20 @@ public class Command {
             case "minitouch":
                 schem = Schem.MINITOUCH;
                 break;
+            case "push":
+                schem = Schem.PUSH;
+                break;
+            case "message":
+                schem = Schem.MESSAGE;
+                break;
             default:
                 throw new InvalidParameterException(command + " 未知的schem");
         }
 
         String contentStr = command.substring(splitIndex + 3);
 
-        // minitouch keyevent，此消息不是json格式。其他都为json键值对
-        if (!schem.equals(Schem.TOUCH) && !schem.equals(Schem.KEYEVENT) && !schem.equals(Schem.INPUT) && !schem.equals(Schem.MINICAP) && !schem.equals(Schem.MINITOUCH)) {
+        // 此消息不是json格式。其他都为json键值对
+        if (!schem.equals(Schem.TOUCH) && !schem.equals(Schem.KEYEVENT) && !schem.equals(Schem.INPUT) && !schem.equals(Schem.MINICAP) && !schem.equals(Schem.MINITOUCH) && !schem.equals(Schem.MESSAGE)) {
             try {
                 this.content = parseContentJson(contentStr);
             } catch (JSONException e) {

@@ -76,6 +76,7 @@ public class Minicap {
 
         // minicap.so
         File minicap_so = Constant.getMinicapSo(abi, sdk);
+        System.out.println(minicap_bin);
         if (!minicap_so.exists()) {
             throw new MinicapInstallException("File: " + minicap_so.getAbsolutePath() + " not exists!");
         }
