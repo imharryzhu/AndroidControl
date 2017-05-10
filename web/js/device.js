@@ -15,7 +15,8 @@ var util = {
     },
     getMinicapRotate:function () {
         return localStorage.getItem("minicap_rotate");
-    }
+    },
+    isRotate: false
 };
 var webSocket = null;
 
@@ -298,6 +299,7 @@ $("#uploadtofile").on("click", function() {
 function requestStartMinicap() {
     var rotate = parseInt(util.getMinicapRotate());
     var scale = parseFloat(util.getMinicapScale());
+    util.isRotate = (rotate === 90 || rotate === 270);
     webSocket.send("start://" + JSON.stringify({type:"minicap", config:{'rotate':rotate, 'scale':scale}}));
 }
 
@@ -317,37 +319,59 @@ function sendKeyEvent(keyevent) {
     webSocket.send("keyevent://" + convertAndroidKeyCode(keyevent));
 }
 
+function sendDown(argx, argy, isRo) {
+    var scalex = 1080.0 / canvas.width;
+    var scaley = 1920.0 / canvas.height;
+    var x = argx, y = argy;
+    if (isRo) {
+        x = (canvas.height - argy) * (canvas.width / canvas.height);
+        y = argx * (canvas.height / canvas.width);
+    }
+    x = Math.round(x * scalex);
+    y = Math.round(y * scaley);
+    var command = "d 0 " + x + " " + y + " 50\n";
+    command += "c\n";
+    sendTouchEvent(command);
+}
+
+function sendMove(argx, argy, isRo) {
+    var scalex = 1080.0 / canvas.width;
+    var scaley = 1920.0 / canvas.height;
+    var x = argx, y = argy;
+    if (isRo) {
+        x = (canvas.height - argy) * (canvas.width / canvas.height);
+        y = argx * (canvas.height / canvas.width);
+    }
+    x = Math.round(x * scalex);
+    y = Math.round(y * scaley);
+
+    var command = "m 0 " + x + " " + y + " 50\n";
+    command += "c\n";
+    sendTouchEvent(command);
+}
+
+function sendUp() {
+    var command = "u 0\n";
+    command += "c\n";
+    sendTouchEvent(command);
+}
+
 canvas.onmousedown = function (event) {
     if (!util.serverConnected) {
         return;
     }
     isDown = true;
-
-    var scalex = 1080.0 / canvas.width;
-    var scaley = 1920.0 / canvas.height;
     var pos = getXAndY(canvas, event);
-    var x = Math.round(pos.x * scalex);
-    var y = Math.round(pos.y * scaley);
-
-    var command = "d 0 " + x + " " + y + " 50\n";
-    command += "c\n";
-    sendTouchEvent(command);
+    sendDown(pos.x, pos.y, util.isRotate);
 };
 
 canvas.onmousemove = function (event) {
-
     if (!util.serverConnected || !isDown) {
         return;
     }
-    var scalex = 1080.0 / canvas.width;
-    var scaley = 1920.0 / canvas.height;
     var pos = getXAndY(canvas, event);
-    var x = Math.round(pos.x * scalex);
-    var y = Math.round(pos.y * scaley);
 
-    var command = "m 0 " + x + " " + y + " 50\n";
-    command += "c\n";
-    sendTouchEvent(command);
+    sendMove(pos.x, pos.y, util.isRotate);
 };
 
 canvas.onmouseover = function (event) {
@@ -359,15 +383,7 @@ canvas.onmouseout = function (event) {
         return;
     }
     isDown = false;
-    var scalex = 1080.0 / canvas.width;
-    var scaley = 1920.0 / canvas.height;
-    var pos = getXAndY(canvas, event);
-    var x = Math.round(pos.x * scalex);
-    var y = Math.round(pos.y * scaley);
-
-    var command = "u 0\n";
-    command += "c\n";
-    sendTouchEvent(command);
+    sendUp();
 };
 
 canvas.onmouseup = function (event) {
@@ -375,13 +391,5 @@ canvas.onmouseup = function (event) {
         return;
     }
     isDown = false;
-    var scalex = 1080.0 / canvas.width;
-    var scaley = 1920.0 / canvas.height;
-    var pos = getXAndY(canvas, event);
-    var x = Math.round(pos.x * scalex);
-    var y = Math.round(pos.y * scaley);
-
-    var command = "u 0\n";
-    command += "c\n";
-    sendTouchEvent(command);
+    sendUp();
 };

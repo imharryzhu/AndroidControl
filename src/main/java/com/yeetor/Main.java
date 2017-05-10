@@ -18,7 +18,6 @@ public class Main {
      * [client ip port]
      */
     public static void main(String[] args) {
-
         try {
             Config config = new Config(args);
 

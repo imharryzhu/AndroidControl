@@ -13,6 +13,7 @@ import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
 import com.yeetor.minitouch.Minitouch;
 import com.yeetor.minitouch.MinitouchListener;
+import com.yeetor.util.Constant;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
@@ -204,7 +205,7 @@ public class LocalClient extends BaseClient implements MinicapListener, Minitouc
 
         IDevice device = AdbServer.server().getDevice(protocol.getSn());
         try {
-            device.pushFile(new File(name).getAbsolutePath(), path + "/" + name);
+            device.pushFile(Constant.getTmpFile(name).getAbsolutePath(), path + "/" + name);
         } catch (Exception e) {
         }
         if (protocol != null) {

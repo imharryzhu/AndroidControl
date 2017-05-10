@@ -8,6 +8,8 @@ import com.yeetor.androidcontrol.client.LocalClient;
 import com.yeetor.androidcontrol.message.BinaryMessage;
 import com.yeetor.androidcontrol.message.FileMessage;
 import com.yeetor.minicap.*;
+import com.yeetor.util.Constant;
+import com.yeetor.util.Util;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.*;
 import io.netty.channel.*;
@@ -86,6 +88,11 @@ public class LocalServer extends BaseServer {
         @Override
         public void onTextMessage(ChannelHandlerContext ctx, String text) {
             Command command = Command.ParseCommand(text);
+            if (command.getSchem() != Command.Schem.WAITTING &&
+                    command.getSchem() != Command.Schem.INPUT &&
+                    command.getSchem() != Command.Schem.KEYEVENT) {
+                System.out.println(command.getCommandString());
+            }
             if (command != null) {
                 switch (command.getSchem()) {
                     case WAIT:
@@ -119,7 +126,7 @@ public class LocalServer extends BaseServer {
 
             if (message.getType().equals("file")) {
                 FileMessage fileMessage = (FileMessage) message;
-                File file = new File(fileMessage.name);
+                File file = Constant.getTmpFile(fileMessage.name);
                 if (fileMessage.offset == 0 && file.exists()) {
                     file.delete();
                 }

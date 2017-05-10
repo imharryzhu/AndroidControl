@@ -79,6 +79,13 @@ public class RemoteServer extends BaseServer {
         @Override
         public void onTextMessage(ChannelHandlerContext ctx, String text) {
             Command command = Command.ParseCommand(text);
+            if (command.getSchem() != Command.Schem.WAITTING &&
+                    command.getSchem() != Command.Schem.INPUT &&
+                    command.getSchem() != Command.Schem.KEYEVENT &&
+                    command.getSchem() != Command.Schem.TOUCH) {
+                System.out.println(command.getCommandString());
+            }
+
             if (command != null) {
                 switch (command.getSchem()) {
                     case WAIT:
@@ -96,6 +103,8 @@ public class RemoteServer extends BaseServer {
                     case DEVICES:
                     case MINICAP:
                     case MINITOUCH:
+                    case PUSH:
+                    case MESSAGE:
                         forwardCommand(ctx, command);
                         break;
                 }
@@ -107,11 +116,7 @@ public class RemoteServer extends BaseServer {
         @Override
         public void onBinaryMessage(ChannelHandlerContext ctx, byte[] data) {
             // 二进制直接转发
-            Protocol protocol = findProtocolByClient(ctx);
-            if (protocol == null || protocol.getBroswerSocket() == null) {
-                return;
-            }
-            protocol.getBroswerSocket().channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.copiedBuffer(data)));
+            forwardBinary(ctx, data);
         }
 
         @Override
@@ -184,6 +189,26 @@ public class RemoteServer extends BaseServer {
             }
 
             sendTo.channel().writeAndFlush(new TextWebSocketFrame(command.getCommandString()));
+        }
+
+        void forwardBinary(ChannelHandlerContext ctx, byte[] data) {
+            Protocol protocol = findProtocolByBrowser(ctx);
+            if (protocol == null) {
+                protocol = findProtocolByClient(ctx);
+                if (protocol == null) {
+                    return;
+                }
+            }
+
+            ChannelHandlerContext sendTo = null;
+
+            if (ctx == protocol.getBroswerSocket()) {
+                sendTo = protocol.getClientSocket();
+            } else {
+                sendTo = protocol.getBroswerSocket();
+            }
+
+            sendTo.channel().writeAndFlush(new BinaryWebSocketFrame(Unpooled.copiedBuffer(data)));
         }
 
         DefaultFullHttpResponse onHttpGet(String uri) {

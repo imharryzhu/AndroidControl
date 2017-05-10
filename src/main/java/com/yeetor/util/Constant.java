@@ -49,4 +49,14 @@ public class Constant {
         return null;
     }
 
+    public static File getTmpFile(String fileName) {
+        String tmpdir = System.getProperty("java.io.tmpdir");
+        File tmp = new File(tmpdir);
+        tmp = new File(tmp, "AndroidControl");
+        if (!tmp.exists()) {
+            tmp.mkdirs();
+        }
+        return new File(tmp, fileName);
+    }
+
 }

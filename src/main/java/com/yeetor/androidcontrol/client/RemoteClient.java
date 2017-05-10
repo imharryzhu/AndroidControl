@@ -5,13 +5,21 @@ import com.android.ddmlib.IDevice;
 import com.neovisionaries.ws.client.*;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.androidcontrol.Command;
+import com.yeetor.androidcontrol.message.BinaryMessage;
+import com.yeetor.androidcontrol.message.FileMessage;
 import com.yeetor.minicap.Banner;
 import com.yeetor.minicap.Minicap;
 import com.yeetor.minicap.MinicapListener;
 import com.yeetor.minitouch.Minitouch;
 import com.yeetor.minitouch.MinitouchListener;
+import com.yeetor.util.Constant;
+import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -163,6 +171,9 @@ public class RemoteClient extends BaseClient implements MinicapListener, Minitou
             case INPUT:
                 inputCommand(command);
                 break;
+            case PUSH:
+                pushCommand(command);
+                break;
         }
     }
 
@@ -195,6 +206,18 @@ public class RemoteClient extends BaseClient implements MinicapListener, Minitou
     private void inputCommand(Command command) {
         String str = (String) command.getContent();
         if (minitouch != null) minitouch.inputText(str);
+    }
+
+    private void pushCommand(Command command) {
+        String name = command.getString("name", null);
+        String path = command.getString("path", null);
+
+        IDevice device = AdbServer.server().getDevice(serialNumber);
+        try {
+            device.pushFile(Constant.getTmpFile(name).getAbsolutePath(), path + "/" + name);
+        } catch (Exception e) {
+        }
+        ws.sendText("message://pushfile success");
     }
 
     private void startMinicap(Command command) {
@@ -246,8 +269,37 @@ public class RemoteClient extends BaseClient implements MinicapListener, Minitou
                     case TOUCH:
                     case KEYEVENT:
                     case INPUT:
+                    case PUSH:
                         executeCommand(command);
                         break;
+                }
+            }
+        }
+
+        @Override
+        public void onBinaryMessage(WebSocket websocket, byte[] data) throws Exception {
+            int headlen = (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
+            String infoJSON = new String(data, 2, headlen);
+            BinaryMessage message = BinaryMessage.parse(infoJSON);
+            System.out.println(infoJSON);
+            if (message.getType().equals("file")) {
+                FileMessage fileMessage = (FileMessage) message;
+                File file = Constant.getTmpFile(fileMessage.name);
+                if (fileMessage.offset == 0 && file.exists()) {
+                    file.delete();
+                }
+                try {
+                    FileOutputStream os = new FileOutputStream(file, true);
+                    byte[] bs = Arrays.copyOfRange(data, 2 + headlen, data.length);
+                    os.write(bs);
+                    os.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (fileMessage.offset + fileMessage.packagesize == fileMessage.filesize) {
+                    ws.sendText("message://upload file success");
                 }
             }
         }
