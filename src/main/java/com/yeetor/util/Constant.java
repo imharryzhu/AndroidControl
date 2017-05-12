@@ -22,6 +22,11 @@ public class Constant {
         return resources;
     }
 
+    public static File getResourceFile(String name) {
+        File dir = getResourceDir();
+        return new File(dir, name);
+    }
+
     public static File getMinicap(String abi) {
         File resources = getResourceDir();
         if (resources.exists()) {
