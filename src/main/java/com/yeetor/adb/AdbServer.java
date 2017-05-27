@@ -126,6 +126,16 @@ public class AdbServer {
         return output.getOutput();
     }
 
+    /**
+     * TODO: 添加自定义adb命令，原因是安卓手表的传输速度太慢，导致adb push超时错误
+     * @param device
+     * @param command
+     * @return
+     */
+    public static String executeCommand(IDevice device, String command) {
+        return "";
+    }
+
     private ListenableFuture<List<AdbForward>> executeGetForwardList() {
         final File adbFile = new File(AdbServer.server().adbPath);
         final SettableFuture future = SettableFuture.create();

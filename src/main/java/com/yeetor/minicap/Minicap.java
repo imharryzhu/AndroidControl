@@ -180,7 +180,8 @@ public class Minicap {
      * @return
      */
     public byte[] takeScreenShot() {
-        String command = getMinicapCommand(deviceSize.w, deviceSize.h, 1080, 1920, 0, false, "minicap", new String[] {"-s -b"});
+        String command = getMinicapCommand(deviceSize.w, deviceSize.h, deviceSize.w, deviceSize.h, 0, false, "minicap", new String[] {"-s -b"});
+        System.out.println("takeScreenShot:" + command);
         BinaryOutputReceiver receiver = new BinaryOutputReceiver();
         try {
             device.executeShellCommand(command, receiver, 0);

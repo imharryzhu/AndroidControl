@@ -217,12 +217,11 @@ public class LocalServer extends BaseServer {
         DefaultFullHttpResponse onHttp(FullHttpRequest req) {
             String uri = req.uri();
             String uriPath = uri.substring(uri.indexOf("/") + 1);
-            System.out.println("http://" + uriPath);
             if (uriPath.startsWith("shot")) {
                 // 获取serialNumber
-                String[] s = uri.split("/");
+                String[] s = uriPath.split("/");
                 if (s.length == 2) {
-                    return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.copiedBuffer(new Minicap(s[2]).takeScreenShot()));
+                    return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, Unpooled.copiedBuffer(new Minicap(s[1]).takeScreenShot()));
                 } else {
                     return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
                 }
