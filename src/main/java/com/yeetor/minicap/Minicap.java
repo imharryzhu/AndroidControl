@@ -67,7 +67,7 @@ public class Minicap {
             throw new MinicapInstallException("File: " + minicap_bin.getAbsolutePath() + " not exists!");
         }
         try {
-            device.pushFile(minicap_bin.getAbsolutePath(), REMOTE_PATH + "/" + MINICAP_BIN);
+            AdbServer.server().executePushFile(device, minicap_bin.getAbsolutePath(), REMOTE_PATH + "/" + MINICAP_BIN);
         } catch (Exception e) {
             throw new MinicapInstallException(e.getMessage());
         }
@@ -81,7 +81,7 @@ public class Minicap {
         }
 
         try {
-            device.pushFile(minicap_so.getAbsolutePath(), REMOTE_PATH + "/" + MINICAP_SO);
+            AdbServer.server().executePushFile(device, minicap_so.getAbsolutePath(), REMOTE_PATH + "/" + MINICAP_SO);
         } catch (Exception e) {
             throw new MinicapInstallException(e.getMessage());
         }

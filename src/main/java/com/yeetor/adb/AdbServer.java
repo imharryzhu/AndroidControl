@@ -129,11 +129,58 @@ public class AdbServer {
     /**
      * TODO: 添加自定义adb命令，原因是安卓手表的传输速度太慢，导致adb push超时错误
      * @param device
-     * @param command
      * @return
      */
-    public static String executeCommand(IDevice device, String command) {
-        return "";
+    public String executePushFile(IDevice device, String src, String dst) {
+        final File adbFile = new File(AdbServer.server().adbPath);
+        final SettableFuture future = SettableFuture.create();
+        (new Thread(new Runnable() {
+            public void run() {
+                ProcessBuilder pb = new ProcessBuilder(new String[]{adbFile.getPath(), "push", src, dst});
+                pb.redirectErrorStream(true);
+                Process p = null;
+
+                try {
+                    p = pb.start();
+                } catch (IOException e) {
+                    future.setException(e);
+                    return;
+                }
+
+                StringBuilder sb = new StringBuilder();
+                BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+                try {
+                    String line;
+                    try {
+                        while((line = br.readLine()) != null) {
+                            sb.append(line);
+                        }
+                        future.set(sb.toString());
+                        return;
+                    } catch (IOException ex) {
+                        future.setException(ex);
+                        return;
+                    }
+                } finally {
+                    try {
+                        br.close();
+                    } catch (IOException ex) {
+                        future.setException(ex);
+                    }
+
+                }
+            }
+        }, "Obtaining adb version")).start();
+
+        String s = "";
+
+        try {
+            s = (String) future.get(30, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            return null;
+        }
+        return s;
     }
 
     private ListenableFuture<List<AdbForward>> executeGetForwardList() {

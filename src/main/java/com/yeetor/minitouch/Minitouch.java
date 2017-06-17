@@ -54,7 +54,7 @@ public class Minitouch {
             throw new MinitouchInstallException("File: " + minitouch_bin.getAbsolutePath() + " not exists!");
         }
         try {
-            device.pushFile(minitouch_bin.getAbsolutePath(), REMOTE_PATH + "/" + MINITOUCH_BIN);
+            AdbServer.server().executePushFile(device, minitouch_bin.getAbsolutePath(), REMOTE_PATH + "/" + MINITOUCH_BIN);
         } catch (Exception e) {
             throw new MinitouchInstallException(e.getMessage());
         }
@@ -112,6 +112,7 @@ public class Minitouch {
         String command = "/data/local/tmp/minitouch" + " -n " + forward.getLocalabstract();
         minitouchThread = startMinitouchThread(command);
         minitouchInitialThread = startInitialThread("127.0.0.1", forward.getPort());
+        System.out.println(command);
     }
 
     public void kill() {

@@ -3,7 +3,6 @@ package com.yeetor.engine;
 import com.android.ddmlib.IDevice;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.minitouch.Minitouch;
 import com.yeetor.minitouch.MinitouchListener;
