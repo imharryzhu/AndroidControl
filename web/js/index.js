@@ -22,8 +22,8 @@ function requestDevices() {
     };
 }
 
-function onDeviceClick(sn) {
-    window.open("device.html?sn=" + sn);
+function onDeviceClick(sn, w, h) {
+    window.open("device.html?sn=" + sn + "&w=" + w + "&h=" + h);
 };
 
 /**
@@ -36,8 +36,8 @@ var fillDevices = function(array) {
         var deviceInfo = array[i];
         var innerCanvas = "";
         var html = "<div class='col-lg-2 col-md-3 col-sm-3 col-xs-6  device-container'>" +
-            "<img class='' src='" + "http://" + server.getServerIp() + ":" + server.getServerPort() + "/shot/" + deviceInfo.sn + "' onclick='onDeviceClick(\"" + deviceInfo.sn + "\")' />" +
-            "<div class='device-detail'><sapn>" + deviceInfo.sn + "</sapn></div>" +
+            "<img class='' src='" + "http://" + server.getServerIp() + ":" + server.getServerPort() + "/shot/" + deviceInfo.sn + "' onclick='onDeviceClick(\"" + deviceInfo.sn + "\", " + deviceInfo.w + ","  + deviceInfo.h + ")' />" +
+            "<div class='device-detail'><sapn>" + deviceInfo.sn + "</sapn><br><span>@" + deviceInfo.w + "x" + deviceInfo.h + "</span></div>" +
             "</div>";
         var dom = $(html);
         $(".container-fluid .row").append(dom);

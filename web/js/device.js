@@ -16,7 +16,9 @@ var util = {
     getMinicapRotate:function () {
         return localStorage.getItem("minicap_rotate");
     },
-    isRotate: false
+    isRotate: false,
+    screenW:400,
+    screenH:400
 };
 var webSocket = null;
 
@@ -89,6 +91,9 @@ window.onload = function() {
 
     util.ip = getUrlParams("ip") || "127.0.0.1";
     util.port = getUrlParams("port") || "6655";
+
+    util.screenW = getUrlParams("w") || 1080;
+    util.screenH = getUrlParams("h") || 1920;
 
     $("#minicapScaleText").val(util.getMinicapScale());
 
@@ -320,8 +325,8 @@ function sendKeyEvent(keyevent) {
 }
 
 function sendDown(argx, argy, isRo) {
-    var scalex = 1080.0 / canvas.width;
-    var scaley = 1920.0 / canvas.height;
+    var scalex = util.screenW / canvas.width;
+    var scaley = util.screenH / canvas.height;
     var x = argx, y = argy;
     if (isRo) {
         x = (canvas.height - argy) * (canvas.width / canvas.height);
@@ -335,8 +340,8 @@ function sendDown(argx, argy, isRo) {
 }
 
 function sendMove(argx, argy, isRo) {
-    var scalex = 1080.0 / canvas.width;
-    var scaley = 1920.0 / canvas.height;
+    var scalex = util.screenW / canvas.width;
+    var scaley = util.screenH / canvas.height;
     var x = argx, y = argy;
     if (isRo) {
         x = (canvas.height - argy) * (canvas.width / canvas.height);

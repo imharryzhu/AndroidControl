@@ -2,6 +2,7 @@ package com.yeetor.androidcontrol;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.android.ddmlib.IDevice;
+import com.yeetor.adb.AdbServer;
 
 /**
  * Created by harry on 2017/4/21.
@@ -21,12 +22,12 @@ public class DeviceInfo {
 
         sn = device.getSerialNumber();
 
-//        String str = AdbServer.executeShellCommand(device, "wm size");
-//        if (str != null && !str.isEmpty()) {
-//            String[] sizeStr = str.split(":")[1].split("x");
-//            width = Integer.parseInt(sizeStr[0].trim());
-//            height = Integer.parseInt(sizeStr[1].trim());
-//        }
+        String str = AdbServer.server().executeShellCommand(device, "wm size");
+        if (str != null && !str.isEmpty()) {
+            String[] sizeStr = str.split(":")[1].split("x");
+            width = Integer.parseInt(sizeStr[0].trim());
+            height = Integer.parseInt(sizeStr[1].trim());
+        }
 
 //        brand = device.getProperty("ro.product.brand");
 //        model = device.getProperty("ro.product.model");
