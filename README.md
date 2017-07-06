@@ -30,7 +30,7 @@ RemoteControl是一个服务器，简单来说，如果你只有这个，而没�
 
 ## 客户端 Awesome 
 
-* RemoteControl-Web   网页端，可直接通过浏览器操作设备
+* [RemoteControl-Web](https://github.com/yeetor/RemoteControl-Web)   网页端，可直接通过浏览器操作设备
 
   ![demo](docs/demo.gif)
 
@@ -60,7 +60,3 @@ RemoteControl是一个服务器，简单来说，如果你只有这个，而没�
 * 操作录制、运行(使用脚本语言，js|lua|python语言的支持，可能只实现js)
 * 服务器支持
 * 流压缩(h264)
-
-### Thanks
-* `minicap` [https://github.com/openstf/minicap](https://github.com/openstf/minicap)
-* `minitouch` [https://github.com/openstf/minitouch](https://github.com/openstf/minitouch)
