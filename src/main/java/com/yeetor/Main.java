@@ -1,10 +1,39 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2017 朱辉
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.yeetor;
 
 import com.neovisionaries.ws.client.WebSocketException;
 import com.yeetor.androidcontrol.client.RemoteClient;
 import com.yeetor.androidcontrol.server.LocalServer;
 import com.yeetor.androidcontrol.server.RemoteServer;
+import com.yeetor.usb.USBListener;
 
+import javax.usb.*;
+import javax.usb.event.UsbDeviceListener;
+import javax.usb.event.UsbServicesEvent;
+import javax.usb.event.UsbServicesListener;
 import java.security.InvalidParameterException;
 
 
@@ -17,7 +46,13 @@ public class Main {
      * [client ip port serialNumber]
      * [client ip port]
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UsbException {
+
+        // 监听USB的变化
+        USBListener.listen();
+        
+        // parse命令行
+        
         try {
             Config config = new Config(args);
 
@@ -26,7 +61,7 @@ public class Main {
             } else {
                 if (config.isLocal) {
                     new LocalServer(config.port).start();
-                } else {
+                } else {                 
                     new RemoteServer(config.port).start();
                 }
             }
