@@ -28,22 +28,23 @@ import com.android.ddmlib.*;
 import com.android.ddmlib.TimeoutException;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.yeetor.androidcontrol.DeviceInfo;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import javax.usb.*;
+import javax.usb.event.UsbServicesEvent;
+import javax.usb.event.UsbServicesListener;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.*;
 
-/**
- * Created by harry on 2017/4/15.
- */
 public class AdbServer {
     private static AdbServer server;
     private String adbPath = null;
     private String adbPlatformTools = "platform-tools";
+    
+    List<AdbDevice> adbDeviceList = null;
 
     AndroidDebugBridge adb = null;
     private boolean success = false;
@@ -58,7 +59,113 @@ public class AdbServer {
     private AdbServer() {
         init();
     }
-
+    
+    /**
+     * 监听USB设备的状态
+     */
+    public void listenUSB() {
+        adbDeviceList = new ArrayList<>();
+        
+        UsbServices services = null;
+        try {
+            services = UsbHostManager.getUsbServices();
+        } catch (UsbException e) {
+            e.printStackTrace(); // TODO: LOG
+        }
+        services.addUsbServicesListener(new MyUSBListener());
+        System.out.println("AdbServer.listenUSB: 已开启USB设备监听...");
+    }
+    
+    
+    private void onUsbDeviceConnected(UsbDevice usbDevice) {
+        List<AdbDevice> devices = checkAdbDevices(usbDevice);
+        devices.forEach(adbDevice -> onAdbDeviceConnected(adbDevice));
+    }
+    
+    private void onUsbDeviceDisConnected(UsbDevice usbDevice) {
+        List<AdbDevice> devices = checkAdbDevices(usbDevice);
+        devices.forEach(adbDevice -> onAdbDeviceDisConnected(adbDevice));
+    }
+    
+    private void onAdbDeviceConnected(AdbDevice adbDevice) {
+        System.out.println("新手机连接");
+        adbDeviceList.add(adbDevice);
+    }
+    
+    private void onAdbDeviceDisConnected(AdbDevice adbDevice) {
+        
+        for (Iterator it = adbDeviceList.iterator(); it.hasNext(); ) {
+            AdbDevice device = (AdbDevice) it.next();
+            
+            if (adbDevice.getUsbDevice() == device.getUsbDevice()) {
+                it.remove();
+                System.out.println("新手机断开");
+            }
+        }
+    }
+    
+    /**
+     * 检测该UsbDevice是否是安卓设备
+     * @param usbDevice
+     * @return 检测到的安卓设备
+     */
+    private List<AdbDevice> checkAdbDevices(UsbDevice usbDevice) {
+        
+        List<AdbDevice> adbDevices = new ArrayList<>();
+        
+        UsbDeviceDescriptor deviceDesc = usbDevice.getUsbDeviceDescriptor();
+        
+        // Ignore devices from Non-ADB vendors
+        // 这步不要，要不然杂牌手机就没法检测到
+//        if (!AdbDevice.isAdbVendor(deviceDesc.idVendor())) return adbDevices;
+        
+        // Check interfaces of device
+        UsbConfiguration config = usbDevice.getActiveUsbConfiguration();
+        for (UsbInterface iface: (List<UsbInterface>) config.getUsbInterfaces())
+        {
+            List<UsbEndpoint> endpoints = iface.getUsbEndpoints();
+        
+            // Ignore interface if it does not have two endpoints
+            if (endpoints.size() != 2) continue;
+        
+            // Ignore interface if it does not match the ADB specs
+            if (!AdbDevice.isAdbInterface(iface)) continue;
+        
+            UsbEndpointDescriptor ed1 =
+                    endpoints.get(0).getUsbEndpointDescriptor();
+            UsbEndpointDescriptor ed2 =
+                    endpoints.get(1).getUsbEndpointDescriptor();
+        
+            // Ignore interface if endpoints are not bulk endpoints
+            if (((ed1.bmAttributes() & UsbConst.ENDPOINT_TYPE_BULK) == 0) ||
+                    ((ed2.bmAttributes() & UsbConst.ENDPOINT_TYPE_BULK) == 0))
+                continue;
+        
+            // Determine which endpoint is in and which is out. If both
+            // endpoints are in or out then ignore the interface
+            byte a1 = ed1.bEndpointAddress();
+            byte a2 = ed2.bEndpointAddress();
+            byte in, out;
+            if (((a1 & UsbConst.ENDPOINT_DIRECTION_IN) != 0) &&
+                    ((a2 & UsbConst.ENDPOINT_DIRECTION_IN) == 0)) {
+                in = a1;
+                out = a2;
+            } else if (((a2 & UsbConst.ENDPOINT_DIRECTION_IN) != 0) &&
+                    ((a1 & UsbConst.ENDPOINT_DIRECTION_IN) == 0)) {
+                out = a1;
+                in = a2;
+            } else { 
+                continue;
+            }
+            
+            // Now, this is an ADB device!
+            AdbDevice device = new AdbDevice(usbDevice, iface, in, out);
+            adbDevices.add(device);
+        }
+        
+        return adbDevices;
+    }
+    
     private String getADBPath(){
         if (adbPath == null){
             adbPath = System.getenv("ANDROID_SDK_ROOT");
@@ -267,5 +374,24 @@ public class AdbServer {
             ex.printStackTrace();
         }
         return new AdbForward[0];
+    }
+    
+    class MyUSBListener implements UsbServicesListener {
+        
+        @Override
+        public void usbDeviceAttached(UsbServicesEvent usbServicesEvent) {
+            UsbDevice device = usbServicesEvent.getUsbDevice();
+            if (!device.isUsbHub()) {
+                onUsbDeviceConnected(device);
+            }
+        }
+        
+        @Override
+        public void usbDeviceDetached(UsbServicesEvent usbServicesEvent) {
+            UsbDevice device = usbServicesEvent.getUsbDevice();
+            if (!device.isUsbHub()) {
+                onUsbDeviceDisConnected(device);
+            }
+        }
     }
 }

@@ -25,15 +25,10 @@
 package com.yeetor;
 
 import com.neovisionaries.ws.client.WebSocketException;
+import com.yeetor.adb.AdbServer;
 import com.yeetor.androidcontrol.client.RemoteClient;
 import com.yeetor.androidcontrol.server.LocalServer;
 import com.yeetor.androidcontrol.server.RemoteServer;
-import com.yeetor.usb.USBListener;
-
-import javax.usb.*;
-import javax.usb.event.UsbDeviceListener;
-import javax.usb.event.UsbServicesEvent;
-import javax.usb.event.UsbServicesListener;
 import java.security.InvalidParameterException;
 
 
@@ -46,10 +41,10 @@ public class Main {
      * [client ip port serialNumber]
      * [client ip port]
      */
-    public static void main(String[] args) throws UsbException {
+    public static void main(String[] args) {
 
         // 监听USB的变化
-        USBListener.listen();
+        AdbServer.server().listenUSB();
         
         // parse命令行
         
