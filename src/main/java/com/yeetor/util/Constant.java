@@ -24,9 +24,12 @@
 
 package com.yeetor.util;
 
-import java.io.File;
+import io.netty.util.internal.SystemPropertyUtil;
+
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Properties;
 
 /**
  * Created by harry on 2017/4/17.
@@ -37,11 +40,25 @@ public class Constant {
     public static final String PROP_SDK = "ro.build.version.sdk";
 
     public static File getResourceDir() {
-        String path = System.getProperty("java.class.path");
-        if (path.indexOf(";") > 0) {
-            path = path.substring(0, path.indexOf(";"));
+    
+        Properties pro = new Properties();
+        InputStream stream = null;
+        try {
+            stream = ClassLoader.getSystemResourceAsStream("yeetor.properties");
+            pro.load(stream);
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        } finally {
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-        File resources = new File(new File(path).getParent(), "resources");
+        File resources = new File(pro.getProperty("resource.root"));
 
         return resources;
     }

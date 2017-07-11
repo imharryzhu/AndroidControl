@@ -22,52 +22,35 @@
  * SOFTWARE.
  */
 
-package com.yeetor.util;
+package com.yeetor.androidcontrol.server;
 
-import com.android.ddmlib.*;
-import org.apache.commons.lang3.RandomUtils;
+import com.alibaba.fastjson.JSON;
+import com.android.ddmlib.IDevice;
+import com.yeetor.adb.AdbDevice;
+import com.yeetor.adb.AdbServer;
+import com.yeetor.androidcontrol.DeviceInfo;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.util.Arrays;
-import java.util.Random;
+import java.util.ArrayList;
 
 /**
- * Created by harry on 2017/4/17.
+ * Created by harry on 2017/5/9.
  */
-public class Util {
-    public static byte[] subArray(byte[] byte1, int start, int end) {
-        byte[] byte2 = new byte[end - start];
-        System.arraycopy(byte1, start, byte2, 0, end - start);
-        return byte2;
-    }
-
-    public static byte[] mergeArray(byte[] a1, byte[] a2) {
-        byte[] arr = Arrays.copyOf(a1, a1.length + a2.length);
-        System.arraycopy(a2, 0, arr, a1.length, a2.length);
-        return arr;
-    }
+public class BaseServer {
 
     /**
-     * 获取闲置端口号
+     * 获取设备信息的JSON数据
      * @return
      */
-    public static int getFreePort() {
-        ServerSocket tmp;
-        int i = 10000;
-        while (true){
-            try{
-                
-                i = RandomUtils.nextInt(10000, 65535);
-                tmp = new ServerSocket(i);
-                tmp.close();
-                tmp = null;
-                return i;
-            }
-            catch(Exception e4){
-                continue;
-            }
+    public String getDevicesJSON() {
+        ArrayList<DeviceInfo> list = new ArrayList<DeviceInfo>();
+        for (AdbDevice device : AdbServer.server().getDevices()) {
+            list.add(new DeviceInfo(device)); // TODO 耗时长，需优化
         }
+        return JSON.toJSONString(list);
     }
+
+
+
+
 
 }

@@ -29,17 +29,20 @@ import com.android.ddmlib.TimeoutException;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.yeetor.androidcontrol.DeviceInfo;
+import org.apache.log4j.Logger;
 
 import javax.usb.*;
 import javax.usb.event.UsbServicesEvent;
 import javax.usb.event.UsbServicesListener;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.*;
 
 public class AdbServer {
+    private static Logger logger = Logger.getLogger(AdbServer.class);
     private static AdbServer server;
     private String adbPath = null;
     private String adbPlatformTools = "platform-tools";
@@ -76,30 +79,78 @@ public class AdbServer {
         System.out.println("AdbServer.listenUSB: 已开启USB设备监听...");
     }
     
-    
+    /**
+     * 监听ADB
+     */
+    public void listenADB() {
+        new Thread() {
+            @Override
+            public void run() {
+                while (true) {
+                    refreshAdbDeviceList();
+                    try {
+                        Thread.sleep(1500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }.start();
+    }
+     
+    /**
+     * USB设备连接时调用
+     */
     private void onUsbDeviceConnected(UsbDevice usbDevice) {
+        logger.info(String.format("USB设备连接：idProduct(0x%x) idVendor(0x%x)", usbDevice.getUsbDeviceDescriptor().idProduct(), usbDevice.getUsbDeviceDescriptor().idVendor()));
         List<AdbDevice> devices = checkAdbDevices(usbDevice);
         devices.forEach(adbDevice -> onAdbDeviceConnected(adbDevice));
     }
     
+    /**
+     * USB设备断开时调用
+     */
     private void onUsbDeviceDisConnected(UsbDevice usbDevice) {
+        logger.info(String.format("USB设备断开：idProduct(0x%x) idVendor(0x%x)", usbDevice.getUsbDeviceDescriptor().idProduct(), usbDevice.getUsbDeviceDescriptor().idVendor()));
         List<AdbDevice> devices = checkAdbDevices(usbDevice);
         devices.forEach(adbDevice -> onAdbDeviceDisConnected(adbDevice));
     }
     
+    /**
+     * 发现安卓设备时调用
+     */
     private void onAdbDeviceConnected(AdbDevice adbDevice) {
-        System.out.println("新手机连接");
+        /*  
+        这部分代码是收到ADB设备连接事件时，将连接的adb设备加入到列表
+        但这样会与listenADB线程冲突，所以选择了后面的那个方案。仅仅将这个事件当做一个"立即刷新"的通知
+        这样带来的缺点就是，无法知道哪些设备是usb连接的
+        // 初始化IDevice
+        // TODO: 这一步，adb可能没能获取到连接的设备
+        IDevice[] iDevice = adb.getDevices();
+        for (IDevice device : iDevice) {
+            if (device.getSerialNumber().equals(adbDevice.getSerialNumber())) {
+                adbDevice.setIDevice(device);
+                break;
+            }
+        }
+        logger.info("Android设备连接：" + adbDevice.getSerialNumber());
+        // 添加在usb中检测到的设备
         adbDeviceList.add(adbDevice);
+        */
+        
+        refreshAdbDeviceList();
     }
     
+    /**
+     * 发现安卓设备断开时调用
+     */
     private void onAdbDeviceDisConnected(AdbDevice adbDevice) {
-        
         for (Iterator it = adbDeviceList.iterator(); it.hasNext(); ) {
             AdbDevice device = (AdbDevice) it.next();
             
             if (adbDevice.getUsbDevice() == device.getUsbDevice()) {
+                logger.info("Android设备断开：" + adbDevice.getSerialNumber());
                 it.remove();
-                System.out.println("新手机断开");
             }
         }
     }
@@ -117,7 +168,7 @@ public class AdbServer {
         
         // Ignore devices from Non-ADB vendors
         // 这步不要，要不然杂牌手机就没法检测到
-//        if (!AdbDevice.isAdbVendor(deviceDesc.idVendor())) return adbDevices;
+        // if (!AdbDevice.isAdbVendor(deviceDesc.idVendor())) return adbDevices;
         
         // Check interfaces of device
         UsbConfiguration config = usbDevice.getActiveUsbConfiguration();
@@ -158,12 +209,46 @@ public class AdbServer {
                 continue;
             }
             
-            // Now, this is an ADB device!
-            AdbDevice device = new AdbDevice(usbDevice, iface, in, out);
-            adbDevices.add(device);
+            adbDevices.add(new AdbDevice(usbDevice, iface, in, out));
         }
-        
         return adbDevices;
+    }
+    
+    /**
+     * 与adb同步设备状态
+     * why？有可能设备是通过wifi或bt连接，这样usb接口是检测不到的
+     */
+    private void refreshAdbDeviceList() {
+        List<AdbDevice> tmpAdbDeviceList = new ArrayList<>(this.adbDeviceList);
+        IDevice[] iDevices = getIDevices();
+        // 添加新的adb设备
+        for (IDevice iDevice : iDevices) {
+            boolean exists = false;
+            for (AdbDevice adbDev : tmpAdbDeviceList) {
+                if (adbDev.getIDevice().getSerialNumber().equals(iDevice.getSerialNumber())) {
+                    exists = true;
+                    break;
+                }
+            }
+            // 如果在已有列表不存在，添加到已有列表
+            if (!exists) {
+                this.adbDeviceList.add(new AdbDevice(iDevice));
+            }
+        }
+        // 移除已断开的设备
+        for (AdbDevice adbDev : tmpAdbDeviceList) {
+            boolean exists = false;
+            for (IDevice iDevice : iDevices) {
+                if (adbDev.getIDevice().getSerialNumber().equals(iDevice.getSerialNumber())) {
+                    exists = true;
+                    break;
+                }
+            }
+            // 如果在已有列表不存在，添加到已有列表
+            if (!exists) {
+                this.adbDeviceList.remove(adbDev);
+            }
+        }
     }
     
     private String getADBPath(){
@@ -215,27 +300,31 @@ public class AdbServer {
         }
         success = false;
     }
-
-    public IDevice[] getDevices() {
+    
+    /**
+     * 获取ADB命令返回的设备列表
+     * @return IDevices
+     */
+    public IDevice[] getIDevices() {
         return adb.getDevices();
     }
-
-    public IDevice getDevice(String serialNumber) {
-        IDevice[] devices = AdbServer.server().getDevices();
-        IDevice device = null;
-        for (IDevice d : devices) {
-            if (serialNumber.equals(d.getSerialNumber())) {
-                device = d;
-                break;
+    
+    public List<AdbDevice> getDevices() {
+        return this.adbDeviceList;
+    }
+    
+    public AdbDevice getDevice(String serialNumber) {
+        for (AdbDevice device : adbDeviceList) {
+            if (device.getSerialNumber().equals(serialNumber)) {
+                return device;
             }
         }
-        return device;
+        return null;
     }
 
-    public IDevice getFirstDevice() {
-        IDevice[] devices = getDevices();
-        if (devices.length > 0) {
-            return devices[0];
+    public AdbDevice getFirstDevice() {
+        if (adbDeviceList.size() > 0) {
+            return adbDeviceList.get(0);
         }
         return null;
     }
