@@ -26,6 +26,7 @@ package com.yeetor.androidcontrol.server;
 
 import com.alibaba.fastjson.JSONObject;
 import com.android.ddmlib.IDevice;
+import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.androidcontrol.*;
 import com.yeetor.androidcontrol.client.LocalClient;
@@ -43,6 +44,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -56,7 +58,8 @@ import java.util.List;
  * Created by harry on 2017/4/18.
  */
 public class LocalServer extends BaseServer {
-
+    private static Logger logger = Logger.getLogger(LocalServer.class);
+    
     private int port = -1;
     List<Protocol> protocolList;
 
@@ -115,7 +118,7 @@ public class LocalServer extends BaseServer {
             if (command.getSchem() != Command.Schem.WAITTING &&
                     command.getSchem() != Command.Schem.INPUT &&
                     command.getSchem() != Command.Schem.KEYEVENT) {
-                System.out.println(command.getCommandString());
+                logger.info(command.getCommandString());
             }
             if (command != null) {
                 switch (command.getSchem()) {
@@ -186,12 +189,12 @@ public class LocalServer extends BaseServer {
 
             // 没有sn，默认第一个设备
             if (StringUtils.isEmpty(sn)) {
-                IDevice iDevice = AdbServer.server().getFirstDevice();
+                AdbDevice iDevice = AdbServer.server().getFirstDevice();
                 if (iDevice == null) {
                     ctx.channel().close();
                     return;
                 }
-                sn = iDevice.getSerialNumber();
+                sn = iDevice.getIDevice().getSerialNumber();
             }
 
             JSONObject obj = new JSONObject();
