@@ -1,0 +1,18 @@
+<component name="libraryTable">
+  <library name="com.android.tools.ddms:ddmlib:25.3.0" type="repository">
+    <properties maven-id="com.android.tools.ddms:ddmlib:25.3.0" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/ddmlib-25.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/common-25.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/annotations-25.3.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/guava-18.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/kxml2-2.3.0.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/lib/ddmlib-25.3.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/ddmlib-25.3.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,24 @@
+<component name="libraryTable">
+  <library name="org.usb4java:usb4java-javax:1.2.0" type="repository">
+    <properties maven-id="org.usb4java:usb4java-javax:1.2.0" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/usb4java-javax-1.2.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/usb-api-1.0.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/commons-lang3-3.2.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/usb4java-1.2.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/libusb4java-1.2.0-linux-x86.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/libusb4java-1.2.0-linux-x86_64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/libusb4java-1.2.0-linux-arm.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/libusb4java-1.2.0-windows-x86.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/libusb4java-1.2.0-windows-x86_64.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/libusb4java-1.2.0-osx-x86.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/libusb4java-1.2.0-osx-x86_64.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/lib/usb4java-javax-1.2.0-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/usb4java-javax-1.2.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
