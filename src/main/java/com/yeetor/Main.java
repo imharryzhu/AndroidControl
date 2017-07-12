@@ -24,14 +24,9 @@
 
 package com.yeetor;
 
-import com.neovisionaries.ws.client.WebSocketException;
-import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbServer;
-import com.yeetor.androidcontrol.client.RemoteClient;
-import com.yeetor.androidcontrol.server.LocalServer;
-import com.yeetor.androidcontrol.server.RemoteServer;
 import org.apache.log4j.Logger;
-
+import java.io.IOException;
 import java.security.InvalidParameterException;
 
 
@@ -46,7 +41,7 @@ public class Main {
      * [client ip port serialNumber]
      * [client ip port]
      */
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException {
 
         // 监听USB的变化
         AdbServer.server().listenUSB();
@@ -54,29 +49,36 @@ public class Main {
         // 同步ADB的设备列表
         AdbServer.server().listenADB();
         
-        // parse命令行
-        try {
-            Config config = new Config(args);
-
-            if (config.isClient) {
-                new RemoteClient(config.ip, config.port, config.key, config.serialNumber);
-            } else {
-                if (config.isLocal) {
-                    new LocalServer(config.port).start();
-                } else {                 
-                    new RemoteServer(config.port).start();
-                }
-            }
-        } catch (InvalidParameterException ex) {
-            System.out.println("localserver <port>: 启动本地服务器(p2p)\n remoteserver <port> 启动服务器 \nremoteclient <ip> <port> <key> [serialNumber] 启动客户端");
-            System.exit(0);
-        } catch (WebSocketException|InterruptedException e) {
-            System.out.println("启动服务器失败: " + e.getMessage());
-            System.exit(0);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(0);
+        while (true) {
+            System.out.print("> ");
+            System.in.read();
+//            System.console().read
         }
+        
+        
+//        // parse命令行
+//        try {
+//            Config config = new Config(args);
+//
+//            if (config.isClient) {
+//                new RemoteClient(config.ip, config.port, config.key, config.serialNumber);
+//            } else {
+//                if (config.isLocal) {
+//                    new LocalServer(config.port).start();
+//                } else {                 
+//                    new RemoteServer(config.port).start();
+//                }
+//            }
+//        } catch (InvalidParameterException ex) {
+//            System.out.println("localserver <port>: 启动本地服务器(p2p)\n remoteserver <port> 启动服务器 \nremoteclient <ip> <port> <key> [serialNumber] 启动客户端");
+//            System.exit(0);
+//        } catch (WebSocketException|InterruptedException e) {
+//            System.out.println("启动服务器失败: " + e.getMessage());
+//            System.exit(0);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            System.exit(0);
+//        }
     }
 
     static class Config {

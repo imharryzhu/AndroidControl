@@ -232,7 +232,9 @@ public class AdbServer {
             }
             // 如果在已有列表不存在，添加到已有列表
             if (!exists) {
-                this.adbDeviceList.add(new AdbDevice(iDevice));
+                AdbDevice device = new AdbDevice(iDevice);
+                logger.info("Android设备连接：" + device.getSerialNumber());
+                this.adbDeviceList.add(device);
             }
         }
         // 移除已断开的设备
@@ -246,7 +248,7 @@ public class AdbServer {
             }
             // 如果在已有列表不存在，添加到已有列表
             if (!exists) {
-                this.adbDeviceList.remove(adbDev);
+                onAdbDeviceDisConnected(adbDev);
             }
         }
     }

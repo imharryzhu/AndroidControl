@@ -187,12 +187,13 @@ public class Minicap {
         return forward;
     }
 
-    private void removeForward(AdbForward forward) {
+    private void removeForward() {
         if (forward == null || !forward.isForward()) {
             return;
         }
         try {
             device.getIDevice().removeForward(forward.getPort(), forward.getLocalabstract(), IDevice.DeviceUnixSocketNamespace.ABSTRACT);
+            forward = null;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -440,7 +441,7 @@ public class Minicap {
         for (MinicapListener listener : listenerList) {
             listener.onClose(this);
         }
-        removeForward(forward);
+        removeForward();
     }
 
     private void onBanner(Banner banner) {
@@ -476,7 +477,7 @@ public class Minicap {
             try {
                 readData();
             } catch (IOException e) {
-                System.out.println("lost connection: " + e.getMessage());
+                logger.warn("minicap lost connection: " + e.getMessage());
                 onClose();
             }
         }
