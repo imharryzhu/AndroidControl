@@ -26,6 +26,8 @@ package com.yeetor.androidcontrol;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.android.ddmlib.IDevice;
+import com.google.common.base.Strings;
+import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbServer;
 
 /**
@@ -42,19 +44,17 @@ public class DeviceInfo {
 
     private int width, height;
 
-    public DeviceInfo(IDevice device) {
+    public DeviceInfo(AdbDevice device) {
 
         sn = device.getSerialNumber();
-
-        String str = AdbServer.server().executeShellCommand(device, "wm size");
-        if (str != null && !str.isEmpty()) {
-            String[] sizeStr = str.split(":")[1].split("x");
+        
+        String str = device.findPropertyCahe(AdbDevice.SCREEN_SIZE);
+        if (!Strings.isNullOrEmpty(str)) {
+            String[] sizeStr = str.split("x");
             width = Integer.parseInt(sizeStr[0].trim());
             height = Integer.parseInt(sizeStr[1].trim());
         }
-
-//        brand = device.getProperty("ro.product.brand");
-//        model = device.getProperty("ro.product.model");
+        
     }
 
     @JSONField(name = "sn")

@@ -27,6 +27,7 @@ package com.yeetor.androidcontrol.client;
 import com.alibaba.fastjson.JSONObject;
 import com.android.ddmlib.IDevice;
 import com.neovisionaries.ws.client.*;
+import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.androidcontrol.Command;
 import com.yeetor.androidcontrol.message.BinaryMessage;
@@ -73,10 +74,10 @@ public class RemoteClient extends BaseClient implements MinicapListener, Minitou
         this.key = key;
         this.serialNumber = serialNumber;
         if (serialNumber == null || serialNumber.isEmpty()) {
-            IDevice device = AdbServer.server().getFirstDevice();
+            AdbDevice device = AdbServer.server().getFirstDevice();
             if (device == null)
                 throw new RuntimeException("未找到设备！");
-            this.serialNumber = device.getSerialNumber();
+            this.serialNumber = device.getIDevice().getSerialNumber();
         }
 
         ws = new WebSocketFactory().createSocket("ws://" + ip + ":" + port);
@@ -236,9 +237,9 @@ public class RemoteClient extends BaseClient implements MinicapListener, Minitou
         String name = command.getString("name", null);
         String path = command.getString("path", null);
 
-        IDevice device = AdbServer.server().getDevice(serialNumber);
+        AdbDevice device = AdbServer.server().getDevice(serialNumber);
         try {
-            device.pushFile(Constant.getTmpFile(name).getAbsolutePath(), path + "/" + name);
+            device.getIDevice().pushFile(Constant.getTmpFile(name).getAbsolutePath(), path + "/" + name);
         } catch (Exception e) {
         }
         ws.sendText("message://pushfile success");

@@ -26,6 +26,7 @@ package com.yeetor.androidcontrol.server;
 
 import com.alibaba.fastjson.JSON;
 import com.android.ddmlib.IDevice;
+import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.androidcontrol.DeviceInfo;
 
@@ -41,9 +42,8 @@ public class BaseServer {
      * @return
      */
     public String getDevicesJSON() {
-        IDevice[] devices = AdbServer.server().getDevices();
         ArrayList<DeviceInfo> list = new ArrayList<DeviceInfo>();
-        for (IDevice device : devices) {
+        for (AdbDevice device : AdbServer.server().getDevices()) {
             list.add(new DeviceInfo(device)); // TODO 耗时长，需优化
         }
         return JSON.toJSONString(list);

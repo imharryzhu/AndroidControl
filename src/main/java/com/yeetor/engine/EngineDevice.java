@@ -27,6 +27,7 @@ package com.yeetor.engine;
 import com.android.ddmlib.IDevice;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.minitouch.Minitouch;
 import com.yeetor.minitouch.MinitouchListener;
@@ -38,12 +39,12 @@ import java.util.concurrent.ExecutionException;
  */
 public class EngineDevice {
 
-    private IDevice iDevice;
+    private AdbDevice device;
     private Minitouch minitouch;
     private boolean minitouchOpen = false;
 
     public static EngineDevice getDevice(String serialNumber) {
-        IDevice iDevice = AdbServer.server().getDevice(serialNumber);
+        AdbDevice iDevice = AdbServer.server().getDevice(serialNumber);
         if (iDevice != null) {
             EngineDevice device = new EngineDevice(iDevice);
             if (device.isMinitouchOpen()) {
@@ -53,8 +54,8 @@ public class EngineDevice {
         return null;
     }
 
-    public EngineDevice(IDevice iDevice) {
-        this.iDevice = iDevice;
+    public EngineDevice(AdbDevice iDevice) {
+        this.device = iDevice;
         minitouch = new Minitouch(iDevice);
         SettableFuture future = SettableFuture.create();
 
@@ -102,11 +103,11 @@ public class EngineDevice {
     }
 
     public String executeShellAndGetString(String command) {
-        return AdbServer.executeShellCommand(iDevice, command);
+        return AdbServer.executeShellCommand(device.getIDevice(), command);
     }
 
     public void startApp(String str) {
-        AdbServer.executeShellCommand(iDevice, "am start " + str);
+        AdbServer.executeShellCommand(device.getIDevice(), "am start " + str);
     }
 
 }

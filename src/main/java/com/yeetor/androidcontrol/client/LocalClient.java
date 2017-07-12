@@ -29,6 +29,7 @@ import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
+import com.yeetor.adb.AdbDevice;
 import com.yeetor.adb.AdbServer;
 import com.yeetor.androidcontrol.Command;
 import com.yeetor.androidcontrol.Protocol;
@@ -227,9 +228,9 @@ public class LocalClient extends BaseClient implements MinicapListener, Minitouc
         String name = command.getString("name", null);
         String path = command.getString("path", null);
 
-        IDevice device = AdbServer.server().getDevice(protocol.getSn());
+        AdbDevice device = AdbServer.server().getDevice(protocol.getSn());
         try {
-            device.pushFile(Constant.getTmpFile(name).getAbsolutePath(), path + "/" + name);
+            device.getIDevice().pushFile(Constant.getTmpFile(name).getAbsolutePath(), path + "/" + name);
         } catch (Exception e) {
         }
         if (protocol != null) {

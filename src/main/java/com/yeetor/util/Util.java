@@ -25,10 +25,12 @@
 package com.yeetor.util;
 
 import com.android.ddmlib.*;
+import org.apache.commons.lang3.RandomUtils;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.Arrays;
+import java.util.Random;
 
 /**
  * Created by harry on 2017/4/17.
@@ -53,8 +55,10 @@ public class Util {
     public static int getFreePort() {
         ServerSocket tmp;
         int i = 10000;
-        for(; i <= 65535; i++){
+        while (true){
             try{
+                
+                i = RandomUtils.nextInt(10000, 65535);
                 tmp = new ServerSocket(i);
                 tmp.close();
                 tmp = null;
@@ -64,7 +68,6 @@ public class Util {
                 continue;
             }
         }
-        return -1;
     }
 
 }
