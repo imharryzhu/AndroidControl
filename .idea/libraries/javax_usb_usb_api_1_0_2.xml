@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="javax.usb:usb-api:1.0.2" type="repository">
+    <properties maven-id="javax.usb:usb-api:1.0.2" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/usb-api-1.0.2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/lib/usb-api-1.0.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/usb-api-1.0.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="log4j:log4j:1.2.17" type="repository">
+    <properties maven-id="log4j:log4j:1.2.17" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/log4j-1.2.17.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/javaee-api-5.0-2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/lib/log4j-1.2.17-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/log4j-1.2.17-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
