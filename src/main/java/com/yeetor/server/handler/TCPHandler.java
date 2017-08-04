@@ -24,7 +24,7 @@
  *
  */
 
-package com.yeetor.server;
+package com.yeetor.server.handler;
 
-public abstract class BaseServer {
+public class TCPHandler extends BroingHandler {
 }

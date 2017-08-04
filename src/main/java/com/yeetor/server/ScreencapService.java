@@ -26,5 +26,31 @@
 
 package com.yeetor.server;
 
-public abstract class BaseServer {
+import com.yeetor.adb.AdbDevice;
+import com.yeetor.adb.AdbServer;
+import com.yeetor.minicap.ScreencapBase;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+public class ScreencapService extends HashMap<AdbDevice, ScreencapBase> {
+    
+    public List<ScreencapBase> filterWithDevice(AdbDevice device) {
+        List<ScreencapBase> lst = new LinkedList<>();
+        Iterator iter = entrySet().iterator();
+        
+        while (iter.hasNext()) {
+            Entry entry = (Entry) iter.next();
+
+            AdbDevice key = (AdbDevice) entry.getKey();
+            if (key.equals(device)) {
+                lst.add((ScreencapBase) entry.getValue());
+            }
+        }
+        return lst;
+    }
+    
+    
+    
 }

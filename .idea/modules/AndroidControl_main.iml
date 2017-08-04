@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module external.linked.project.id="AndroidControl:main" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="GRADLE" external.system.module.group="" external.system.module.type="sourceSet" external.system.module.version="unspecified" type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8" inherit-compiler-output="false">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
     <output url="file://$MODULE_DIR$/../../build/classes/main" />
     <exclude-output />
     <content url="file://$MODULE_DIR$/../../src/main">
@@ -18,14 +18,14 @@
     <orderEntry type="library" scope="PROVIDED" name="Gradle: net.sf.kxml:kxml2:2.3.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: com.android.tools:annotations:25.3.0" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Gradle: com.google.guava:guava:18.0" level="project" />
-    <orderEntry type="library" name="org.usb4java:usb4java-javax:1.2.0" level="project" />
-    <orderEntry type="library" name="javax.usb:usb-api:1.0.2" level="project" />
-    <orderEntry type="library" name="com.neovisionaries:nv-websocket-client:1.3" level="project" />
-    <orderEntry type="library" name="io.netty:netty-all:4.1.13.Final" level="project" />
-    <orderEntry type="library" name="com.android.tools.ddms:ddmlib:25.3.0" level="project" />
-    <orderEntry type="library" name="com.alibaba:fastjson:1.2.34" level="project" />
-    <orderEntry type="library" name="log4j:log4j:1.2.17" level="project" />
-    <orderEntry type="library" name="org.apache.commons:commons-lang3:3.6" level="project" />
-    <orderEntry type="library" name="commons-cli:commons-cli:1.2" level="project" />
+    <orderEntry type="library" exported="" name="org.usb4java:usb4java-javax:1.2.0" level="project" />
+    <orderEntry type="library" exported="" name="javax.usb:usb-api:1.0.2" level="project" />
+    <orderEntry type="library" exported="" name="com.neovisionaries:nv-websocket-client:1.3" level="project" />
+    <orderEntry type="library" exported="" name="io.netty:netty-all:4.1.13.Final" level="project" />
+    <orderEntry type="library" exported="" name="com.android.tools.ddms:ddmlib:25.3.0" level="project" />
+    <orderEntry type="library" exported="" name="log4j:log4j:1.2.17" level="project" />
+    <orderEntry type="library" exported="" name="com.alibaba:fastjson:1.2.34" level="project" />
+    <orderEntry type="library" exported="" name="org.apache.commons:commons-lang3:3.6" level="project" />
+    <orderEntry type="library" exported="" name="commons-cli:commons-cli:1.2" level="project" />
   </component>
 </module>

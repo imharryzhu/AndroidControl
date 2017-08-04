@@ -1,7 +1,8 @@
 /*
+ *
  * MIT License
  *
- * Copyright (c) 2017 朱辉
+ * Copyright (c) 2017 朱辉 https://blog.yeetor.com
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +21,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
 package com.yeetor.androidcontrol.server;
@@ -50,9 +52,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by harry on 2017/4/18.
@@ -91,6 +91,7 @@ public class LocalServer extends BaseServer {
 
         @Override
         public void onConnect(ChannelHandlerContext ctx) {
+            logger.info("Websocket new connection!" + ctx.channel().remoteAddress());
         }
 
         @Override
@@ -110,17 +111,18 @@ public class LocalServer extends BaseServer {
                     break;
                 }
             }
+            logger.info("Websocket lost connection!" + ctx.channel().remoteAddress());
         }
 
         @Override
         public void onTextMessage(ChannelHandlerContext ctx, String text) {
             Command command = Command.ParseCommand(text);
-            if (command.getSchem() != Command.Schem.WAITTING &&
-                    command.getSchem() != Command.Schem.INPUT &&
-                    command.getSchem() != Command.Schem.KEYEVENT) {
-                logger.info(command.getCommandString());
-            }
             if (command != null) {
+                if (command.getSchem() != Command.Schem.WAITTING &&
+                        command.getSchem() != Command.Schem.INPUT &&
+                        command.getSchem() != Command.Schem.KEYEVENT) {
+                    logger.info(command.getCommandString());
+                }
                 switch (command.getSchem()) {
                     case WAIT:
                         initLocalClient(ctx, command);
@@ -243,6 +245,7 @@ public class LocalServer extends BaseServer {
 
         DefaultFullHttpResponse onHttp(FullHttpRequest req) {
             String uri = req.uri();
+            logger.info(uri);
             String uriPath = uri.substring(uri.indexOf("/") + 1);
             if (uriPath.startsWith("shot")) {
                 // 获取serialNumber

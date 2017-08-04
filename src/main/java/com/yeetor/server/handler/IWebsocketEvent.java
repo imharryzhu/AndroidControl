@@ -24,7 +24,15 @@
  *
  */
 
-package com.yeetor.server;
+package com.yeetor.server.handler;
 
-public abstract class BaseServer {
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+
+public interface IWebsocketEvent {
+    void onConnect(ChannelHandlerContext ctx);
+    void onDisconnect(ChannelHandlerContext ctx);
+    void onTextMessage(ChannelHandlerContext ctx, String text);
+    void onBinaryMessage(ChannelHandlerContext ctx, byte[] data);
 }

@@ -1,7 +1,8 @@
 /*
+ *
  * MIT License
  *
- * Copyright (c) 2017 朱辉
+ * Copyright (c) 2017 朱辉 https://blog.yeetor.com
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +21,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
 package com.yeetor.adb;
@@ -28,7 +30,6 @@ import com.android.ddmlib.*;
 import com.android.ddmlib.TimeoutException;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
-import com.yeetor.androidcontrol.DeviceInfo;
 import org.apache.log4j.Logger;
 
 import javax.usb.*;
@@ -36,7 +37,6 @@ import javax.usb.event.UsbServicesEvent;
 import javax.usb.event.UsbServicesListener;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.*;
@@ -48,6 +48,7 @@ public class AdbServer {
     private String adbPlatformTools = "platform-tools";
     
     List<AdbDevice> adbDeviceList = null;
+    List<IAdbServerListener> listeners = null;
 
     AndroidDebugBridge adb = null;
     private boolean success = false;
@@ -87,12 +88,12 @@ public class AdbServer {
             @Override
             public void run() {
                 while (true) {
-                    refreshAdbDeviceList();
                     try {
                         Thread.sleep(1500);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                    refreshAdbDeviceList();
                 }
             }
         }.start();
@@ -151,6 +152,7 @@ public class AdbServer {
             if (adbDevice.getUsbDevice() == device.getUsbDevice()) {
                 logger.info("Android设备断开：" + adbDevice.getSerialNumber());
                 it.remove();
+                listeners.forEach(l -> l.onAdbDeviceDisConnected(device));
             }
         }
     }
@@ -235,6 +237,7 @@ public class AdbServer {
                 AdbDevice device = new AdbDevice(iDevice);
                 logger.info("Android设备连接：" + device.getSerialNumber());
                 this.adbDeviceList.add(device);
+                listeners.forEach(l -> l.onAdbDeviceConnected(device));
             }
         }
         // 移除已断开的设备
@@ -270,7 +273,7 @@ public class AdbServer {
     private void init() {
         AndroidDebugBridge.init(false);
         adb = AndroidDebugBridge.createBridge(getADBPath(), true);
-
+        listeners = new ArrayList<>();
         if (adb != null) {
             if (waitForDeviceList()) {
                 success = true;
@@ -358,7 +361,7 @@ public class AdbServer {
         final SettableFuture future = SettableFuture.create();
         (new Thread(new Runnable() {
             public void run() {
-                ProcessBuilder pb = new ProcessBuilder(new String[]{adbFile.getPath(), "push", src, dst});
+                ProcessBuilder pb = new ProcessBuilder(new String[]{adbFile.getPath(), "-s", device.getSerialNumber(), "push", src, dst});
                 pb.redirectErrorStream(true);
                 Process p = null;
 
@@ -465,6 +468,10 @@ public class AdbServer {
             ex.printStackTrace();
         }
         return new AdbForward[0];
+    }
+    
+    public void addListener(IAdbServerListener listener) {
+        this.listeners.add(listener);
     }
     
     class MyUSBListener implements UsbServicesListener {

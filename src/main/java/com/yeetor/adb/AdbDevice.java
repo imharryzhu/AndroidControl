@@ -1,7 +1,8 @@
 /*
+ *
  * MIT License
  *
- * Copyright (c) 2017 朱辉
+ * Copyright (c) 2017 朱辉 https://blog.yeetor.com
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +21,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
 package com.yeetor.adb;
@@ -57,7 +59,7 @@ public class AdbDevice {
     /** PropertyCahe KEY for serialNumber */
     public static final String SERIAL_NUMBER = "sn";
     
-    /** PropertyCahe KEY for screenSize */
+    /** PropertyCahe KEY for screenSize 获取的是 widthxheight的字符串 */
     public static final String SCREEN_SIZE = "SCREEN_SIZE";
     
     /** The claimed USB ADB interface. */
@@ -197,9 +199,17 @@ public class AdbDevice {
     
         // serialNumber
         propertyCahe.put(SERIAL_NUMBER, iDevice.getSerialNumber());
+
+        // abi & sdk
+        String abi = iDevice.getProperty(Constant.PROP_ABI);
+        propertyCahe.put(Constant.PROP_ABI, abi);
+        String sdk = iDevice.getProperty(Constant.PROP_SDK);
+        propertyCahe.put(Constant.PROP_SDK, sdk);
         
-        // screenSize
-        String str = AdbServer.executeShellCommand(iDevice, "dumpsys window displays | sed -n '3p'");
+        // android 4.3 以下没有 displays
+        int sdkv = Integer.parseInt(sdk);
+        String shellCmd = sdkv > 16 ? "dumpsys window displays | sed -n '3p'" : "dumpsys window";
+        String str = AdbServer.executeShellCommand(iDevice, shellCmd);
         if (str != null && !str.isEmpty()) {
             Pattern pattern =  Pattern.compile("init=(\\d+x\\d+)");
             Matcher m = pattern.matcher(str);
@@ -207,12 +217,6 @@ public class AdbDevice {
                 propertyCahe.put(SCREEN_SIZE, m.group(1));
             }
         }
-        
-        // abi & sdk
-        String abi = iDevice.getProperty(Constant.PROP_ABI);
-        propertyCahe.put(Constant.PROP_ABI, abi);
-        String sdk = iDevice.getProperty(Constant.PROP_SDK);
-        propertyCahe.put(Constant.PROP_SDK, sdk);
     }
     
     /**
@@ -222,6 +226,5 @@ public class AdbDevice {
     public String findPropertyCahe(String key) {
         return propertyCahe.get(key);
     }
-    
     
 }

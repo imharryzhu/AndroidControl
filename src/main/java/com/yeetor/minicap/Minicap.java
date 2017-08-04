@@ -1,7 +1,8 @@
 /*
+ *
  * MIT License
  *
- * Copyright (c) 2017 朱辉
+ * Copyright (c) 2017 朱辉 https://blog.yeetor.com
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +21,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
 package com.yeetor.minicap;
@@ -42,10 +44,12 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static com.yeetor.adb.AdbDevice.SCREEN_SIZE;
+
 /**
  * Created by harry on 2017/4/17.
  */
-public class Minicap {
+public class Minicap extends ScreencapBase {
     private static Logger logger = Logger.getLogger(Minicap.class);
     private static final String MINICAP_BIN = "minicap";
     private static final String MINICAP_SO = "minicap.so";
@@ -76,6 +80,10 @@ public class Minicap {
     public static void installMinicap(AdbDevice device) throws MinicapInstallException {
         if (device == null) {
             throw new MinicapInstallException("device can't be null");
+        }
+        
+        if (isMinicapInstalled(device)) {
+            return;
         }
 
         String sdk = device.getProperty(Constant.PROP_SDK);
@@ -122,14 +130,11 @@ public class Minicap {
             e.printStackTrace();
         }
 
-        // init size
-        String str = AdbServer.executeShellCommand(device.getIDevice(), "wm size");
-        if (str != null && !str.isEmpty()) {
-            String sizeStr = str.split(":")[1];
-            int screenWidth = Integer.parseInt(sizeStr.split("x")[0].trim());
-            int screenHeight = Integer.parseInt(sizeStr.split("x")[1].trim());
-            deviceSize = new Size(screenWidth, screenHeight);
-        }
+        // 获取屏幕大小
+        String[] ss = device.findPropertyCahe(SCREEN_SIZE).split("x");
+        int w = Integer.parseInt(ss[0]);
+        int h = Integer.parseInt(ss[1]);
+        deviceSize = new Size(w, h);
     }
 
     public Minicap(String serialNumber) {
@@ -144,6 +149,10 @@ public class Minicap {
         if (listener != null) {
             this.listenerList.add(listener);
         }
+    }
+    
+    public List<MinicapListener> getEventListener() {
+        return listenerList;
     }
 
     /*
@@ -175,7 +184,7 @@ public class Minicap {
         String command = StringUtils.join(commands, " ");
         return command;
     }
-
+    
     public AdbForward createForward() {
         forward = generateForwardInfo();
         try {
@@ -249,7 +258,7 @@ public class Minicap {
     public void start(int ow, int oh, int dw, int dh, int rotate, boolean shipFrame, String[] args) {
         AdbForward forward = createForward();
         String command = getMinicapCommand(ow, oh, dw, dh ,rotate, shipFrame, forward.getLocalabstract(), args);
-
+        logger.info("start minicap:" + command);
         minicapThread = startMinicapThread(command);
         minicapInitialThread = startInitialThread("127.0.0.1", forward.getPort());
     }
@@ -454,6 +463,19 @@ public class Minicap {
         for (MinicapListener listener : listenerList) {
             listener.onJPG(this, data);
         }
+    }
+
+    /**
+     * 判断该手机是否已经安装minicap
+     * @return
+     */
+    public static boolean isMinicapInstalled(AdbDevice device) {
+        if (device == null || device.getIDevice() == null) {
+            return false;
+        }
+        String s = AdbServer.executeShellCommand(device.getIDevice(), String.format("LD_LIBRARY_PATH=%s %s/%s -i", REMOTE_PATH, REMOTE_PATH, MINICAP_BIN));
+        // TODO: 这里简单处理了一下
+        return s.startsWith("{");
     }
 
     private class DataReader implements Runnable {

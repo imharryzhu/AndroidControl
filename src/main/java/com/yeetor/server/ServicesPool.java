@@ -26,5 +26,25 @@
 
 package com.yeetor.server;
 
-public abstract class BaseServer {
+public class ServicesPool {
+    
+    private static ServicesPool instance = null;
+
+    ScreencapService screencapService = null;
+    
+    public static ServicesPool getInstance() {
+        if (instance == null) {
+            instance = new ServicesPool();
+        }
+        return instance;
+    }
+    
+    private ServicesPool() {
+        screencapService = new ScreencapService();
+    }
+
+
+    public ScreencapService getScreencapService() {
+        return screencapService;
+    }
 }

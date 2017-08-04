@@ -1,7 +1,8 @@
 /*
+ *
  * MIT License
  *
- * Copyright (c) 2017 朱辉
+ * Copyright (c) 2017 朱辉 https://blog.yeetor.com
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,13 +21,18 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
  */
 
 package com.yeetor;
 
+import com.neovisionaries.ws.client.WebSocketException;
 import com.yeetor.adb.AdbServer;
+import com.yeetor.androidcontrol.client.RemoteClient;
+import com.yeetor.androidcontrol.server.LocalServer;
+import com.yeetor.androidcontrol.server.RemoteServer;
+import com.yeetor.server.AndroidControlServer;
 import org.apache.log4j.Logger;
-import java.io.IOException;
 import java.security.InvalidParameterException;
 
 
@@ -41,44 +47,43 @@ public class Main {
      * [client ip port serialNumber]
      * [client ip port]
      */
-    public static void main(String[] args) throws InterruptedException, IOException {
-
+    public static void main(String[] args) throws Exception {
+        
+        // nc 127.0.0.1 4433 进入命令行交互界面
+        // Console.getInstance().listenOnTCP(4433);
+        
         // 监听USB的变化
         AdbServer.server().listenUSB();
         
         // 同步ADB的设备列表
         AdbServer.server().listenADB();
+
+
+        AndroidControlServer server = new AndroidControlServer();
+        server.listen(6655);
         
-        while (true) {
-            System.out.print("> ");
-            System.in.read();
-//            System.console().read
+        try {
+            Config config = new Config(args);
+
+            if (config.isClient) {
+                new RemoteClient(config.ip, config.port, config.key, config.serialNumber);
+            } else {
+                if (config.isLocal) {
+                    new LocalServer(config.port).start();
+                } else {                 
+                    new RemoteServer(config.port).start();
+                }
+            }
+        } catch (InvalidParameterException ex) {
+            System.out.println("localserver <port>: 启动本地服务器(p2p)\n remoteserver <port> 启动服务器 \nremoteclient <ip> <port> <key> [serialNumber] 启动客户端");
+            System.exit(0);
+        } catch (WebSocketException |InterruptedException e) {
+            System.out.println("启动服务器失败: " + e.getMessage());
+            System.exit(0);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(0);
         }
-        
-        
-//        // parse命令行
-//        try {
-//            Config config = new Config(args);
-//
-//            if (config.isClient) {
-//                new RemoteClient(config.ip, config.port, config.key, config.serialNumber);
-//            } else {
-//                if (config.isLocal) {
-//                    new LocalServer(config.port).start();
-//                } else {                 
-//                    new RemoteServer(config.port).start();
-//                }
-//            }
-//        } catch (InvalidParameterException ex) {
-//            System.out.println("localserver <port>: 启动本地服务器(p2p)\n remoteserver <port> 启动服务器 \nremoteclient <ip> <port> <key> [serialNumber] 启动客户端");
-//            System.exit(0);
-//        } catch (WebSocketException|InterruptedException e) {
-//            System.out.println("启动服务器失败: " + e.getMessage());
-//            System.exit(0);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            System.exit(0);
-//        }
     }
 
     static class Config {
