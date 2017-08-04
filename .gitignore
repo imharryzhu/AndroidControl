@@ -5,6 +5,8 @@
 .idea/workspace.xml
 out/*
 *.class
+lib/*
+
 
 # gradle
 
