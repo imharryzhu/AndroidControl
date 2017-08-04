@@ -2,18 +2,18 @@
   <library name="com.alibaba:fastjson:1.2.34" type="repository">
     <properties maven-id="com.alibaba:fastjson:1.2.34" />
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/fastjson-1.2.34.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/retrofit-2.1.0.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/okhttp-3.6.0.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/okio-1.11.0.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/javaslang-2.0.6.jar!/" />
-      <root url="jar://$PROJECT_DIR$/lib/javaslang-match-2.0.6.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/alibaba/fastjson/1.2.34/fastjson-1.2.34.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/squareup/retrofit2/retrofit/2.1.0/retrofit-2.1.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/squareup/okhttp3/okhttp/3.6.0/okhttp-3.6.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/squareup/okio/okio/1.11.0/okio-1.11.0.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/javaslang/javaslang/2.0.6/javaslang-2.0.6.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/javaslang/javaslang-match/2.0.6/javaslang-match-2.0.6.jar!/" />
     </CLASSES>
     <JAVADOC>
-      <root url="jar://$PROJECT_DIR$/lib/fastjson-1.2.34-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/alibaba/fastjson/1.2.34/fastjson-1.2.34-javadoc.jar!/" />
     </JAVADOC>
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/lib/fastjson-1.2.34-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/alibaba/fastjson/1.2.34/fastjson-1.2.34-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AndroidControl.iml" filepath="$PROJECT_DIR$/.idea/modules/AndroidControl.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AndroidControl_main.iml" filepath="$PROJECT_DIR$/.idea/modules/AndroidControl_main.iml" group="AndroidControl" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/AndroidControl_test.iml" filepath="$PROJECT_DIR$/.idea/modules/AndroidControl_test.iml" group="AndroidControl" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/AndroidControl.iml" filepath="$PROJECT_DIR$/.idea/AndroidControl.iml" />
     </modules>
   </component>
 </project>

@@ -2,13 +2,13 @@
   <library name="io.netty:netty-all:4.1.13.Final" type="repository">
     <properties maven-id="io.netty:netty-all:4.1.13.Final" />
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/netty-all-4.1.13.Final.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-all/4.1.13.Final/netty-all-4.1.13.Final.jar!/" />
     </CLASSES>
     <JAVADOC>
-      <root url="jar://$PROJECT_DIR$/lib/netty-all-4.1.13.Final-javadoc.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-all/4.1.13.Final/netty-all-4.1.13.Final-javadoc.jar!/" />
     </JAVADOC>
     <SOURCES>
-      <root url="jar://$PROJECT_DIR$/lib/netty-all-4.1.13.Final-sources.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/io/netty/netty-all/4.1.13.Final/netty-all-4.1.13.Final-sources.jar!/" />
     </SOURCES>
   </library>
 </component>

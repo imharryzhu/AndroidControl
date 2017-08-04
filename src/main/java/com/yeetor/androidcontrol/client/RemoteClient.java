@@ -278,7 +278,7 @@ public class RemoteClient extends BaseClient implements MinicapListener, Minitou
 
     class MyWebsocketEvent extends WebSocketAdapter {
         @Override
-        public void onConnected(WebSocket websocket, Map<String, List<String>> headers) throws Exception {
+        public void onConnected(WebSocket websocket, Map<String, List<String>> headers) {
             System.out.println("Connect to server " + ip + ":" + port);
             JSONObject obj = new JSONObject();
             obj.put("sn", serialNumber);
@@ -287,7 +287,7 @@ public class RemoteClient extends BaseClient implements MinicapListener, Minitou
         }
 
         @Override
-        public void onTextMessage(WebSocket websocket, String text) throws Exception {
+        public void onTextMessage(WebSocket websocket, String text) {
             Command command = Command.ParseCommand(text);
             if (command != null) {
                 switch (command.getSchem()) {
@@ -304,7 +304,7 @@ public class RemoteClient extends BaseClient implements MinicapListener, Minitou
         }
 
         @Override
-        public void onBinaryMessage(WebSocket websocket, byte[] data) throws Exception {
+        public void onBinaryMessage(WebSocket websocket, byte[] data) {
             int headlen = (data[1] & 0xFF) << 8 | (data[0] & 0xFF);
             String infoJSON = new String(data, 2, headlen);
             BinaryMessage message = BinaryMessage.parse(infoJSON);
@@ -332,7 +332,7 @@ public class RemoteClient extends BaseClient implements MinicapListener, Minitou
         }
 
         @Override
-        public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) throws Exception {
+        public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer) {
             System.out.println("Server disconnected");
             System.exit(0);
         }
