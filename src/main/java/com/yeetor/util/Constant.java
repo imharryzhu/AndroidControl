@@ -61,7 +61,6 @@ public class Constant {
             }
         }
         File resources = new File(pro.getProperty("resource.root"));
-
         return resources;
     }
 

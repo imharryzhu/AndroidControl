@@ -58,8 +58,6 @@ public class JavaScripts {
     }
 
     public void show() {
-        System.out.println("我是傻逼");
+        System.out.println("...");
     }
-
-
 }

@@ -27,13 +27,21 @@
 package com.yeetor.server.handler;
 
 import com.yeetor.server.HttpServer;
+import com.yeetor.util.Constant;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.stream.ChunkedFile;
+
+import javax.activation.MimetypesFileTypeMap;
+import java.io.*;
+
 import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 
 public class HTTPHandler extends SimpleChannelInboundHandler<Object> {
     
@@ -50,26 +58,20 @@ public class HTTPHandler extends SimpleChannelInboundHandler<Object> {
         }
         
         HttpRequest request = (HttpRequest) msg;
+        boolean isKeepAlive = HttpUtil.isKeepAlive(request);
         
-        server.onRequest(ctx, request);
-        
-//        DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-//        response.headers().add("Content-Type", "text/html");
-//        response.headers().add("Server", "Yeetor");
-//
-//        byte[] s = "aaaa\0".getBytes();
-//        
-//        
-//        response.content().writeBytes(Unpooled.wrappedBuffer(s));
-//        response.headers().add("Content-Length", s.length);
-//        boolean isKeepAlive = HttpUtil.isKeepAlive(request);
-//        
-//        if (!isKeepAlive || response.status() != HttpResponseStatus.OK) {
-//            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE); 
-//        } else {
-//            response.headers().set(CONNECTION, KEEP_ALIVE);
-//            ctx.writeAndFlush(response);
-//        }
+        HttpResponse response = server.onRequest(ctx, request);
+        if (response == null) {
+            return;
+        }
+        response.headers().add("Access-Control-Allow-Origin", "*");
+        response.headers().add("Server", "Yeetor");
+        if (isKeepAlive) {
+            response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+        } else {
+            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+        }
+        ctx.writeAndFlush(response);
     }
 }
  

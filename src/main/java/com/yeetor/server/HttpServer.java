@@ -26,65 +26,103 @@
 
 package com.yeetor.server;
 
-import com.yeetor.adb.AdbServer;
 import com.yeetor.adb.AdbUtils;
 import com.yeetor.minicap.Minicap;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelDuplexHandler;
+import com.yeetor.util.Constant;
+import eu.medsea.mimeutil.MimeUtil;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.stream.ChunkedFile;
 import org.apache.log4j.Logger;
 
-import java.util.regex.Pattern;
+import javax.activation.MimetypesFileTypeMap;
+import java.io.*;
 
 import static io.netty.handler.codec.http.HttpHeaderValues.KEEP_ALIVE;
 import static io.netty.handler.codec.http.HttpHeaders.Names.CONNECTION;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_LENGTH;
+import static io.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 
 public class HttpServer {
     private static Logger logger = Logger.getLogger(HttpServer.class);
-    public void onRequest(ChannelHandlerContext ctx, HttpRequest request) {
+    public HttpResponse onRequest(ChannelHandlerContext ctx, HttpRequest request) {
         String uri = request.uri();
+        logger.info("http:" + uri);
         
         if (uri.startsWith("/devices")) {
-            devices(ctx, request);
+            return devices(ctx, request);
         } else if(uri.startsWith("/shot")) {
-            shot(ctx, request);
+            return shot(ctx, request);
         } else {
-            doCommonResponse(ctx, request, HttpResponseStatus.NOT_FOUND);
+            return files(ctx, request);
         }
     }
     
-    public void shot(ChannelHandlerContext ctx, HttpRequest request) {
+    public HttpResponse shot(ChannelHandlerContext ctx, HttpRequest request) {
         
         String uri = request.uri();
         String[] args = uri.split("/");
         
         if (args.length < 1 || args[1].length() == 0) {
-            doCommonResponse(ctx, request, HttpResponseStatus.INTERNAL_SERVER_ERROR);
-            return;
+            return new DefaultFullHttpResponse(HttpVersion.HTTP_1_0, HttpResponseStatus.INTERNAL_SERVER_ERROR);
         }
         
         String serialNumber = args[2];
 
         long startTime=System.currentTimeMillis();
         Minicap cap = new Minicap(serialNumber);
-        byte[] data = cap.takeScreenShot(); // TODO 性能优化，现在速度慢
+        byte[] data = cap.takeScreenShot();
         long endTime=System.currentTimeMillis();
         logger.info("ScreenShot used：" + (endTime - startTime) + "ms");
 
 
-        doDefaultResponse(ctx, request, data, "image/jpeg");
+        return doDefaultResponse(ctx, request, data, "image/jpeg");
     }
 
-    public void devices(ChannelHandlerContext ctx, HttpRequest request) {
-
-        String uri = request.uri();
-
+    public HttpResponse devices(ChannelHandlerContext ctx, HttpRequest request) {
         String json = AdbUtils.devices2JSON();
         byte[] data = json.getBytes();
-
-        doDefaultResponse(ctx, request, data, "text/json");
+        return doDefaultResponse(ctx, request, data, "text/json");
+    }
+    
+    public HttpResponse files(ChannelHandlerContext ctx, HttpRequest request){
+        String location = request.uri().substring(1);
+        if (location.equals("")) {
+            location = "index.html";
+        }
+        
+        File localFile = new File(Constant.getResourceDir(), "web" + File.separator + location);
+    
+        if (!localFile.exists() || localFile.isHidden()) {
+            return doDefaultResponse(ctx, request, "404".getBytes(), "text/plain");
+        }
+    
+        ChunkedFile chunkedFile = null;
+        try{
+            RandomAccessFile raf = new RandomAccessFile(localFile, "r");
+            chunkedFile = new ChunkedFile(raf, 0, localFile.length(), 8192);
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+    
+        long l = chunkedFile.length();
+        HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+        response.headers().add("Access-Control-Allow-Origin", "*");
+        response.headers().add("Server", "Yeetor");
+    
+        response.headers().add(CONTENT_LENGTH, localFile.length());
+    
+        
+        MimetypesFileTypeMap mimetypesFileTypeMap = new MimetypesFileTypeMap();
+        response.headers().add(CONTENT_TYPE, mimetypesFileTypeMap.getContentType(localFile.getPath()));
+        
+        ctx.write(response);
+        ctx.write(chunkedFile);
+        ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT); // need?
+        
+        return response;
     }
     
     public void doCommonResponse(ChannelHandlerContext ctx, HttpRequest request, HttpResponseStatus status) {
@@ -107,22 +145,11 @@ public class HttpServer {
         }
     }
     
-    public void doDefaultResponse(ChannelHandlerContext ctx,  HttpRequest request, byte[] data, String contentType) {
+    public HttpResponse doDefaultResponse(ChannelHandlerContext ctx,  HttpRequest request, byte[] data, String contentType) {
         DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-        response.headers().add("Access-Control-Allow-Origin", "*");
         response.headers().add("Content-Type", contentType);
-        response.headers().add("Server", "Yeetor");
-
         response.content().writeBytes(data);
         response.headers().add("Content-Length", data.length);
-        boolean isKeepAlive = HttpUtil.isKeepAlive(request);
-
-        if (!isKeepAlive || response.status() != HttpResponseStatus.OK) {
-            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
-        } else {
-            response.headers().set(CONNECTION, KEEP_ALIVE);
-            ctx.writeAndFlush(response);
-        }
+        return response;
     }
-    
 }
