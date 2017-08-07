@@ -59,6 +59,10 @@ public class HttpServer {
     
     public void onRequest(ChannelHandlerContext ctx, HttpRequest request, HttpResponse response) {
         String uri = request.uri();
+        if (uri.indexOf("?") != -1) {
+            uri = uri.substring(0, uri.indexOf("?"));
+        }
+        
         logger.info("http:" + uri);
         
         // 找到符合注解的方法
@@ -86,6 +90,9 @@ public class HttpServer {
 
     public void doFileRequest(ChannelHandlerContext ctx, HttpRequest request, HttpResponse response) {
         String location = request.uri().substring(1);
+        if (location.indexOf("?") != -1) {
+            location = location.substring(0, location.indexOf("?"));
+        }
         if (location.equals("")) {
             location = INDEX_FILE;
         }

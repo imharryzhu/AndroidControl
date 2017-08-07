@@ -40,27 +40,64 @@ public class Constant {
 
     public static final String PROP_ABI = "ro.product.cpu.abi";
     public static final String PROP_SDK = "ro.build.version.sdk";
-
-    public static File getResourceDir() {
+    public static final String PROPERTIES_FILE = "yeetor.properties";
     
-        Properties pro = new Properties();
-        InputStream stream = null;
-        try {
-            stream = ClassLoader.getSystemResourceAsStream("yeetor.properties");
-            pro.load(stream);
-        } catch (IOException e) {
-
-            e.printStackTrace();
-        } finally {
-            if (stream != null) {
+    private static Properties properties = null;
+    
+    /**
+     * 这里初始化配置文件......yeetor.properties
+     * 
+     * 优先级：同级目录 > 包内部默认文件
+     */
+    static {
+        properties = new Properties();
+        if (!loadPropertiesWithFileName(JarTool.getJarDir() + File.separator + PROPERTIES_FILE)) {
+            InputStream inputStream = ClassLoader.getSystemResourceAsStream(PROPERTIES_FILE);
+            if (!loadPropertiesWithStream(inputStream)) {
                 try {
-                    stream.close();
+                    inputStream.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         }
-        File resources = new File(pro.getProperty("resource.root"));
+    }
+    
+    static boolean loadPropertiesWithFileName(String fileName) {
+        File file = new File(fileName);
+        if (file.isHidden() || !file.exists()) {
+            return false;
+        }
+        FileInputStream inputStream = null;
+        try {
+            inputStream = new FileInputStream(file);
+            loadPropertiesWithStream(inputStream);
+            return true;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return false;
+    }
+    
+    static boolean loadPropertiesWithStream(InputStream inputStream) {
+        try {
+            properties.load(inputStream);
+        } catch (IOException e) {
+            return false;
+        }
+        return true;
+    }
+    
+    public static File getResourceDir() {
+        File resources = new File(properties.getProperty("resource.root"));
         return resources;
     }
 
