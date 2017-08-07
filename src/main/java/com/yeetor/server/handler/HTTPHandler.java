@@ -58,20 +58,27 @@ public class HTTPHandler extends SimpleChannelInboundHandler<Object> {
         }
         
         HttpRequest request = (HttpRequest) msg;
+
+        HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         boolean isKeepAlive = HttpUtil.isKeepAlive(request);
+
         
-        HttpResponse response = server.onRequest(ctx, request);
-        if (response == null) {
-            return;
-        }
         response.headers().add("Access-Control-Allow-Origin", "*");
         response.headers().add("Server", "Yeetor");
-        if (isKeepAlive) {
-            response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-        } else {
-            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
-        }
-        ctx.writeAndFlush(response);
+        
+        server.onRequest(ctx, request, response);
+        
+//        HttpResponse response = server.onRequest(ctx, request);
+//        if (response == null) {
+//            return;
+//        }
+        
+//        if (isKeepAlive) {
+//            response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+//        } else {
+//            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+//        }
+//        ctx.writeAndFlush(response);
     }
 }
  
