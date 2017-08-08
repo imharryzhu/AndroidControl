@@ -1,0 +1,3 @@
+[submodule "resources/web"]
+	path = resources/web
+	url = https://github.com/yeetor/RemoteControl-Web

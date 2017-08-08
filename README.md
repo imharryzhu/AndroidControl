@@ -1,65 +1,119 @@
 # AndroidControl
 
-即将更名为**RemoteControl**，因为即将支持iphone的屏幕实时查看
+**它可以仅仅使用浏览器控制一台或者多台安卓设备，不仅仅局限于手机，如平板、手表等都可以**
 
-在工作时，有很多场景需要用到**RemoteControl**，比如：
+**如果有问题或者建议，请加qq群: 1476686**
 
-* 你是个开发者，当你需要对不同型号的手机进行安装APP测试时，你可以仅仅通过电脑就能操作所有手机
-* 你是一个测试工程师，你需要大批量对手机进行操作时
-* 你是个白领，当你的怕拿起手机的动作被leader发现时，可以利用RemoteControl来在电脑上进行你想要的操作
-* 你是一个微商，或者自媒体😅。你懂得
+This is an software for people to control theirs android devices. They can only use a browser to control one or more Android devices. but not  just mobile phones, it still can control pad, watches and more
 
-这将是改变当前电脑工作者生活方式的产品
+English Version: translate this
 
-**欢迎提交`issue`，如果它对你有帮助，点个`Star`哟**
+### UI preview
 
-## 它是什么？
+![preview](docs/images/preview.png)
 
-RemoteControl是一个服务器，简单来说，如果你只有这个，而没有客户端，那么你什么都干不了。所以在下文，我介绍了几个不同版本的客户端供大家使用
+![gif](docs/images/preview.gif)
 
-- 查看手机的实时屏幕
-- 查看参数设置
-  - 设置屏幕的缩放比例
-  - 设置屏幕的旋转角度
-- 操作手机
-  - 单点触摸
-  - 滑动
-  - 键盘输入
-  - 文字输入
-- 上传文件到手机
-- wifi&蓝牙连接
 
-## 客户端 Awesome 
 
-* [RemoteControl-Web](https://github.com/yeetor/RemoteControl-Web)   网页端，可直接通过浏览器操作设备
+# 如何使用
 
-  ![demo](docs/demo.gif)
+AndroidControl是一个使用java语言编写的服务器，它是连接电脑和安卓设备的一个桥梁。
 
-## 如何运行？
+你可以选择自己编译运行，也可以使用编译好的版本。
 
-1. 运行之前，请确保配置了如下环境
-   * java se/jdk 1.8 +
-   * adb 配置到环境变量
-   * 您的安卓设备开启了usb调试，部分设备需要开启模拟点击权限
-2. 使用Gradle构建项目： `gradle jar`
-3. 进入到生成的目录：`cd build/libs`
-4. 运行服务器（这里使用本地服务器）：`java -jar AndroidControl.jar localserver 6655`
-5. 此刻，服务器部分就搭建完毕了，你可以选择你想要的客户端进行操作
+编译好的版本:  [下载地址]()
 
-## For Developers
+**Step0:**
 
-本项目的核心是: `LocalServer` `RemoteServer` `RemoteClient`，`web`文件夹内只是DEMO
+请确认你电脑中安装了如下环境
 
-你可以根据`docs/接口说明`封装一个操作的界面
+* Java1.8 +.  命令行输入 `java -version`
+* adb  命令行输入 `adb version`
 
-## Features
+**Step1:**
 
-* 帧数限制，用户可自定义帧数
-* 群控功能，可以控制多台设备
-* 模拟实体按键
-* 操作映射，对一台机器的操作映射到多台机器
-* 操作录制、运行(使用脚本语言，js|lua|python语言的支持，可能只实现js)
-* 服务器支持
-* 流压缩(h264)
-* 目前获取已连接手机全部是通过adb获取，速度较慢。将用usb监听来实时监控手机的连接和信息
-* 内置WEB服务器，提供网页客户端功能
+请确认目录结构是这样的
+
+```shell
+├── AndroidControl.jar
+├── resources
+└── yeetor.properties
+```
+
+**Step2:**
+
+修改`yeetor.properties`文件，并把同目录下的`resources`目录的绝对路径粘贴到这里
+
+```
+resource.root=请把resources目录的路径复制到这里
+```
+
+如我的电脑：
+
+```
+resource.root=/Users/harry/Documents/AndroidControl_Release
+```
+
+**Step3:**
+
+运行`AndroidControl.jar`。注意，请修改为你电脑中的实际路径
+
+```shell
+java -jar AndroidControl.jar 
+```
+
+**Step4:**
+
+插上你的手机，打开`USB调试模式`
+
+打开浏览器，输入 `http://localhost:6655`
+
+> 部分浏览器会出现不兼容的情况，请选用比较现代的浏览器
+
+
+
+# 如何编译
+
+使用Intellij Idea打开本工程...
+
+
+
+# 客户端的部署
+
+内置的网页`http://localhost:6655`提供的是简单的功能。如果想用一些强大、自定义的功能，你就需要其他客户端或者自己编写客户端。 
+
+如果想自己编写客户端，请参考内置的客户端以及[协议约定文档](docs/protocol-design.md)编写。
+
+### 替换内置网页客户端
+
+修改`yeetor.properties`所配置`resource`目录中的`web`目录中的内容。 听起来很拗口。。。
+
+注意：只支持静态页面
+
+### 使用其他非网页客户端
+
+我还做了个Native客户端，但还不完善，暂时先不公开了。
+
+
+
+# 未来计划
+
+* 实现协议未完成的功能，协议中还有部分功能未完成
+* 功能优化
+  * 横竖屏切换时的优化
+  * 模拟物理按键的响应速度
+  * 键盘映射的响应速度
+  * 输出帧率控制
+  * 视频流压缩
+  * 内置adb工具
+
+# 如何贡献
+
+正式版相比demo要减少了很多功能，其很大原因是做了很多代码的中的整理。目的也是想让大家能够比较容易的参与这个项目。
+
+现在项目中有非常非常多的修改点和优化点，在Android领域，实时屏幕、按键模拟、触摸模拟的方法有很多很多。如果能把这些方法整理、整合起来。岂不美哉😉
+
+
+
+**欢迎提交PR**
