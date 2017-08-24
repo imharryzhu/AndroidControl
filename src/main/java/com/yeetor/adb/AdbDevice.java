@@ -208,7 +208,7 @@ public class AdbDevice {
         
         // android 4.3 以下没有 displays
         int sdkv = Integer.parseInt(sdk);
-        String shellCmd = sdkv > 16 ? "dumpsys window displays | sed -n '3p'" : "dumpsys window";
+        String shellCmd = sdkv > 17 ? "dumpsys window displays | sed -n '3p'" : "dumpsys window";
         String str = AdbServer.executeShellCommand(iDevice, shellCmd);
         if (str != null && !str.isEmpty()) {
             Pattern pattern =  Pattern.compile("init=(\\d+x\\d+)");
