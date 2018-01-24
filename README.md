@@ -63,24 +63,9 @@ AndroidControl是一个使用java语言编写的服务器，它是连接电脑�
 ```shell
 ├── AndroidControl.jar
 ├── resources
-└── yeetor.properties
 ```
 
 **Step2:**
-
-修改`yeetor.properties`文件，并把同目录下的`resources`目录的绝对路径粘贴到这里
-
-```
-resource.root=请把resources目录的路径复制到这里
-```
-
-如我的电脑：
-
-```
-resource.root=/Users/harry/Documents/AndroidControl_Release
-```
-
-**Step3:**
 
 运行`AndroidControl.jar`。注意，请修改为你电脑中的实际路径
 
@@ -88,7 +73,7 @@ resource.root=/Users/harry/Documents/AndroidControl_Release
 java -jar AndroidControl.jar 
 ```
 
-**Step4:**
+**Step3:**
 
 插上你的手机，打开`USB调试模式`
 
