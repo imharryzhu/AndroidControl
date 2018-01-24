@@ -1,0 +1,97 @@
+body {
+    background-color: #2B313c;
+}
+
+span:hover {
+    cursor: default;
+}
+
+.navbar {
+    background-color: #673ab8;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 64px;
+    z-index: 3;
+    border-radius: 0px;
+}
+
+#root{
+    width: 100%;
+    height: 100%;
+    transition: all 200ms linear;
+}
+
+.content {
+    position: fixed;
+    margin-top: 64px;
+    width: 100vw;
+    height: 100%;
+    margin-bottom: 60px;
+    overflow: scroll;
+}
+
+#phone-list {
+    display: inline-block;
+}
+
+#phone-list li {
+    float: left;
+    margin: 20px 20px;
+}
+
+.phone {
+    width: 180px;
+    height: 360px;
+}
+
+.phone-info {
+    color: #cdcdcd;
+    height: 20px;
+    line-height: 20px;
+    margin: auto;
+    font-size: 14px;
+}
+
+.phone-header {
+    border-radius: 10px 10px 0px 0px;
+    background-color: #009688;
+    text-align: center;
+    overflow: hidden;
+}
+
+.phone-body {
+    width: 100%;
+    height: 320px;
+    background-color: #00796B;
+    cursor: pointer;
+}
+
+.phone-footer {
+    width: 100%;
+    border-radius: 0px 0px 10px 10px;
+    background-color: #009688;
+    text-align: center;
+}
+
+.bottom {
+    clear: both;
+    color: white;
+    margin-top: 24px;
+    height: 100px;
+}
+
+.modal-dialog {  
+    margin: 30vh auto;  
+}
+
+.small-phone {
+    width: 90px;
+    height: 160px;
+    padding: 5px 2px;
+    float: left;
+}
+
+.phone-shot {
+    cursor: pointer;
+}

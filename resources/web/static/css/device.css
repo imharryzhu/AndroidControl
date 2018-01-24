@@ -1,0 +1,57 @@
+body {
+    background-color: #2B313c;
+    margin: 0 0;
+    padding: 0 0; 
+}
+
+#main {
+    text-align: center;
+}
+
+#content {
+    display: inline-block;
+    text-align: center;
+}
+
+#phone-screen {
+    display: block;
+}
+
+.navbar {
+    background-color: #673ab8;
+    top: 0;
+    width: 100%;
+    margin-bottom: 0px;
+    min-height: 24px;
+    height: 24px;
+    z-index: 3;
+    border-radius: 0px;
+}
+
+.footer {
+    background-color: #673ab8;
+    width: 100%;
+    min-height: 0px;
+    height: 42px;
+}
+
+.menu-button {
+    height: 42px;
+    cursor: pointer;
+    transition: all 250ms linear;
+}
+
+.menu-button:hover {
+    background: rgba(0,0,0,.1);
+}
+
+.menu-button span {
+    color: white;
+    line-height: 42px;
+    font-size: 1.7em;
+}
+
+.modal-dialog {  
+    margin: 15vh auto;  
+}  
+

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="static/lib/bootstrap-3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/lib/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="static/lib/jquery-ui-1.12.1/jquery-ui.min.css">
+    <link rel="stylesheet" href="static/css/device.css">
+  </head>
+  <body>
+    <div id="main">
+      <div class="content" id="content">
+        <nav class="navbar">
+            <p id="title" class="text-center">{{title}}</p>  
+        </nav>
+        <canvas id="phone-screen"></canvas>
+        <footer class="footer">
+          <div class="container-fluid">
+              <div class="row">
+              <!-- <div class="col-xs-3  text-center menu-button" id="btn-scale"><span class="fa "></div> -->
+                  <!-- <button type="button" class="btn btn-default" data-toggle="tooltip" data-placement="left" title="Tooltip on left">Tooltip on left</button> -->
+              <div class="col-xs-3 text-center menu-button" id="btn-back"><span class="fa fa-chevron-left"></span></div>
+              <div class="col-xs-3 text-center menu-button" id="btn-home"><span class="fa fa-circle-o"></span></div>
+              <div class="col-xs-3 text-center menu-button" id="btn-menu"><span class="fa fa-align-justify"></span></div>
+              <div class="col-xs-3 text-center menu-button" id="btn-more" data-toggle="modal" data-target="#myModal"><span class="fa fa-wheelchair"></span></div>
+              <!-- Button trigger modal -->
+              </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+    <!-- Modal -->
+    <!-- 设置  -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <!-- <div class="modal-content"> -->
+          <ul class="list-group">
+            <li class="list-group-item">
+              <p>窗口大小设置</p>
+              <div id="display-scale-slider"></div>
+            </li>
+            <li class="list-group-item">
+              <p>输出清晰度</p>
+              <div id="scale-slider"></div>
+            </li>
+            <li class="list-group-item text-center">
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" id="rotateCheckBox"> 屏幕旋转
+                </label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" id="keyEventCheckBox"> 键盘映射
+                </label>
+                <p class="help-block">将你键盘按下的键位信息发送到手机</p>
+              </div>
+            </li>
+          </ul>
+        <!-- </div> -->
+      </div>
+    </div>
+    <!-- 重置scale  -->
+    <div class="modal" id="resetScaleModal" tabindex="-1" role="dialog" data-backdrop="static">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-body">
+            <div>请等待CapService重启</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="static/lib/jquery-3.2.1.min.js"></script>
+  <script>if (typeof module === 'object') {window.jQuery = window.$ = module.exports;};</script>
+  <script src="static/lib/bootstrap-3.3.7/js/bootstrap.min.js"></script>
+  <script src="static/lib/jquery-ui-1.12.1/jquery-ui.min.js"></script>
+  <script src="static/lib/vue.js"></script>
+  <script src="static/js/keyeventConvert.js"></script>
+  <script src="static/js/device.js"></script>
+</html>

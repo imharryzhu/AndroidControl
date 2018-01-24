@@ -1,0 +1,29 @@
+{
+  "name": "bootstrap-material-design",
+  "description": "Bootstrap Material Design 4",
+  "keywords": [
+    "material",
+    "design",
+    "bootstrap",
+    "css",
+    "js",
+    "sass",
+    "mobile-first",
+    "responsive",
+    "front-end",
+    "framework",
+    "web"
+  ],
+  "homepage": "http://fezvrasta.github.io/bootstrap-material-design",
+  "license": "MIT",
+  "moduleType": "globals",
+  "main": [
+    "scss/_core.scss",
+    "dist/bootstrap-material-design.iife.js"
+  ],
+  "dependencies": {
+    "jquery": "^2.2",
+    "tether": "^1.2",
+    "bootstrap": "v4-dev"
+  }
+}
